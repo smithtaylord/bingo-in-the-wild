@@ -2,24 +2,23 @@
   <ion-page>
     <ion-header>
       <ion-buttons slot="start">
-        <ion-button color="dark-green" class="ion-padding">
+        <ion-button class="ion-padding" color="dark-green">
           <ion-icon :icon="menu" />
         </ion-button>
       </ion-buttons>
     </ion-header>
     <ion-content>
-      
       <ion-text class="ion-text-center" color="dark-green">
-        <h4>Theme: {{id}}</h4>
+        <h4>Theme: {{ themeName }}</h4>
       </ion-text>
-      
+
       <ion-grid class="bingo-grid ion-margin-bottom">
         <ion-row class="ion-justify-content-center">
           <ion-col
-              v-for="letter in 'BINGO'"
-              :key="letter"
-              size="2"
-              class="bingo-header"
+            v-for="letter in 'BINGO'"
+            :key="letter"
+            class="bingo-header"
+            size="2"
           >
             <div class="bingo-box-header">
               <h1>{{ letter }}</h1>
@@ -28,93 +27,164 @@
         </ion-row>
       </ion-grid>
       <ion-grid class="ion-margin-vertical">
-        <ion-row v-for="(row, rowIndex) in board" :key="rowIndex" class="ion-justify-content-center">
+        <ion-row
+          v-for="(row, rowIndex) in board"
+          :key="rowIndex"
+          class="ion-justify-content-center"
+        >
           <ion-col
-              v-for="(cell, colIndex) in row"
-              :key="colIndex"
-              size="2"
-              class="bingo-cell"
-              :class="{ marked: cell.isMarked }"
-              @click="toggleCell(rowIndex, colIndex)"
+            v-for="(cell, colIndex) in row"
+            :key="colIndex"
+            :class="{ marked: cell.isMarked }"
+            class="bingo-cell"
+            size="2"
+            @click="toggleCell(rowIndex, colIndex)"
           >
             <div class="bingo-box">
-              <h2>{{ cell.label }}</h2>
+              <span>{{ cell.label }}</span>
             </div>
           </ion-col>
         </ion-row>
       </ion-grid>
 
-      <div class="justify-content-center align-items-center d-flex flex-column ">
-        <ion-button color="salmon" shape="round" class="bingo-page-button ion-margin-bottom">
+      <div class="justify-content-center align-items-center d-flex flex-column">
+        <ion-button
+          class="bingo-page-button ion-margin-bottom"
+          color="salmon"
+          shape="round"
+        >
           <ion-icon slot="start" :icon="list"></ion-icon>
           List View
-        </ion-button> 
-        
-        
-        <ion-button color="salmon" shape="round" class="bingo-page-button ion-margin-bottom" @click="resetGame">
+        </ion-button>
+
+        <ion-button
+          class="bingo-page-button ion-margin-bottom"
+          color="salmon"
+          shape="round"
+          @click="resetGame"
+        >
           <ion-icon slot="start" :icon="trashBin"></ion-icon>
           Reset Game
-        </ion-button>        
-        
-        <ion-button color="salmon" shape="round" class="bingo-page-button ion-margin-bottom" @click="goHome">
+        </ion-button>
+
+        <ion-button
+          class="bingo-page-button ion-margin-bottom"
+          color="salmon"
+          shape="round"
+          @click="goHome"
+        >
           <ion-icon slot="start" :icon="home"></ion-icon>
           Home
         </ion-button>
       </div>
-        
-      
-    </ion-content>    
+    </ion-content>
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
+import {
+  alertController,
+  IonButton,
+  IonButtons,
+  IonCol,
+  IonContent,
+  IonGrid,
+  IonHeader,
+  IonIcon,
+  IonPage,
+  IonRow,
+  IonText,
+  toastController,
+} from "@ionic/vue";
+import { home, list, menu, trashBin, warning } from "ionicons/icons";
+import { onMounted, Ref, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import {
+  BingoCell,
+  checkWinner,
+  clearBoard,
+} from "@/views/bingo-game/bingoGameService";
+import { BingoGameAPI } from "@/views/bingo-game/bingoGameAPI";
 
-import {IonButton, IonButtons, IonHeader, IonIcon, IonPage, IonContent, IonText, IonRow, IonCol, IonGrid} from "@ionic/vue";
-import {home, list, menu, trashBin} from "ionicons/icons";
-import {Ref, ref, watch, watchEffect} from "vue";
-import {useRouter} from "vue-router";
-import {BingoCell, checkWinner, clearBoard} from "@/views/bingo-game/bingoGameService";
-
-const props = defineProps<{id: string}>()
-const router = useRouter()
-const winner = ref<boolean>(false)
-const board: Ref<BingoCell[][]> = ref([
-  [{ label: '🍕' }, { label: '🎉' }, { label: '👀' }, { label: '🎯' }, { label: '🍀' }],
-  [{ label: '💃' }, { label: '🕺' }, { label: '🚀' }, { label: '🧃' }, { label: '📸' }],
-  [{ label: '🎸' }, { label: '🥳' }, { label: 'Free', isMarked: true, isFreeSpace: true }, { label: '🌈' }, { label: '🦄' }],
-  [{ label: '🐶' }, { label: '🏀' }, { label: '🧁' }, { label: '👟' }, { label: '🍩' }],
-  [{ label: '🎮' }, { label: '🎨' }, { label: '🧠' }, { label: '🌮' }, { label: '📚' }]
-]);
+const props = defineProps<{ id: string }>();
+const router = useRouter();
+const winner = ref<boolean>(false);
+const board: Ref<BingoCell[][]> = ref([]);
+const themeName = ref<string>();
+const api = new BingoGameAPI();
 
 const toggleCell = (rowIndex: number, colIndex: number) => {
   const cell = board.value[rowIndex][colIndex];
   cell.isMarked = !cell.isMarked;
-}
+};
 
 const resetGame = () => {
-  clearBoard(board.value)
-}
+  clearBoard(board.value);
+};
 const goHome = () => {
-  router.push({ name: 'Home' });
-}
+  router.push({ name: "Home" });
+};
 
+const winningGameAlert = async () => {
+  const alert = await alertController.create({
+    header: "BINGO!",
+    subHeader: "Congratulations, you won!",
+    buttons: [
+      {
+        text: "Home",
+        handler: () => goHome(),
+      },
+      {
+        text: "Rest Game",
+        handler: () => resetGame(),
+      },
+    ],
+  });
 
-watch(board.value, ()=> {
-  winner.value = checkWinner(board.value)
-})
+  await alert.present();
+};
 
-watch(() => winner.value, ()=> {
-  if (winner.value) {
-    window.alert("YOU WON!")
+const invalidThemeId = async () => {
+  const toast = await toastController.create({
+    message: "Invalid theme!",
+    duration: 2500,
+    position: "middle",
+    icon: warning,
+  });
+
+  await toast.present();
+  goHome();
+};
+
+watch(
+  () => board.value,
+  () => {
+    winner.value = checkWinner(board.value);
+  },
+  { deep: true },
+);
+
+watch(
+  () => winner.value,
+  async () => {
+    if (winner.value) {
+      await winningGameAlert();
+    }
+  },
+);
+
+onMounted(async () => {
+  themeName.value = api.getThemeName(parseInt(props.id));
+  const gameBoard: BingoCell[][] | null = api.createGameBoard(
+    parseInt(props.id),
+  );
+  if (!gameBoard) {
+    await invalidThemeId();
+  } else {
+    board.value = gameBoard;
   }
-})
-
-
-
-
-// TODO need to put together a list of all possible winners and if there is a winner we need to do some sort of BINGO Overlay and convetti or something fun
+});
 </script>
-
 
 <style scoped>
 .bingo-header {
@@ -130,12 +200,16 @@ watch(() => winner.value, ()=> {
   border-radius: 8px;
 }
 
-.bingo-box{
+.bingo-box {
   background-color: var(--ion-color-white);
   color: var(--ion-color-dark-green);
+  font-size: 0.5rem;
+  text-wrap: auto;
+  overflow-x: hidden;
 }
 
-.bingo-box, .bingo-box-header{
+.bingo-box,
+.bingo-box-header {
   aspect-ratio: 1 / 1; /* Makes it square */
   width: 100%;
   display: flex;
@@ -144,14 +218,12 @@ watch(() => winner.value, ()=> {
   border: 2px solid white;
 }
 
-
-.marked{
+.marked {
   background-color: var(--ion-color-salmon);
   color: var(--ion-color-white);
 }
 
-
-.bingo-page-button{
+.bingo-page-button {
   width: 65vw;
 }
 </style>

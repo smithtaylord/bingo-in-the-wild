@@ -14,8 +14,8 @@
   </ion-header>
   <ion-content class="ion-padding" color="white">
     <ion-list lines="inset">
-      <ion-item color="white" button detail="false" v-for="theme in mockThemes" :key="theme">
-        <ion-label color="dark-green" @click="select(theme)">{{ theme }}</ion-label>
+      <ion-item color="white" button detail="false" v-for="theme in themes" :key="theme.id">
+        <ion-label color="dark-green" @click="select(theme.id)">{{ theme.name }}</ion-label>
       </ion-item>
     </ion-list>
   </ion-content>
@@ -35,14 +35,21 @@ import {
   IonList,
   IonLabel
 } from '@ionic/vue';
-
+import {ThemeSelectorAPI} from "@/views/bingo-theme-selector/themeSelectorAPI";
+import {onMounted, Ref, ref} from "vue";
+import {GameTheme} from "@/views/mock-game-themes/mockGameThemes";
+const api = new ThemeSelectorAPI()
 const cancel = () => modalController.dismiss(null, 'cancel');
-const select = (value: string) => {
-  console.log(value)
+const select = (value: number) => {
   modalController.dismiss(value, 'select')
 };
 
-const mockThemes = ['Hockey', 'Baseball', 'Boise Green Belt', 'General People Watching', 'Brewery People Watching'];
+const themes: Ref<GameTheme[]> = ref([])
+
+onMounted(()=>{
+  themes.value = api.getThemes()
+})
+
 </script>
 
 <style scoped>

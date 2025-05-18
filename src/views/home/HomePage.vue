@@ -2,17 +2,24 @@
   <ion-page>
     <ion-header>
       <ion-buttons slot="start">
-        <ion-button color="dark-green" class="ion-padding">
+        <ion-button class="ion-padding" color="dark-green">
           <ion-icon :icon="menu" />
         </ion-button>
       </ion-buttons>
     </ion-header>
     <ion-content class="ion-padding" fullscreen>
-      <div class="d-flex flex-column justify-content-center align-items-center h-100">
+      <div
+        class="d-flex flex-column justify-content-center align-items-center h-100"
+      >
         <ion-text color="dark-green">
           <h1 class="home-title">Bingo in the Wild</h1>
         </ion-text>
-        <ion-button shape="round" size="large" color="salmon" @click="openThemeSelectorModal">
+        <ion-button
+          color="salmon"
+          shape="round"
+          size="large"
+          @click="openThemeSelectorModal"
+        >
           <ion-icon slot="start" :icon="trophy" />
           <span>Choose a Theme</span>
         </ion-button>
@@ -21,23 +28,22 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {
-  IonContent,
-  IonPage,
-  IonIcon,
-  modalController,
   IonButton,
-  IonText,
-  IonToolbar,
+  IonButtons,
+  IonContent,
   IonHeader,
-  IonButtons
-} from '@ionic/vue';
-import {menu, trophy} from "ionicons/icons";
-import {useRouter} from "vue-router";
+  IonIcon,
+  IonPage,
+  IonText,
+  modalController,
+} from "@ionic/vue";
+import { menu, trophy } from "ionicons/icons";
+import { useRouter } from "vue-router";
 import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 
-const router = useRouter()
+const router = useRouter();
 const openThemeSelectorModal = async () => {
   const modal = await modalController.create({
     component: ThemeSelectorModal,
@@ -47,13 +53,10 @@ const openThemeSelectorModal = async () => {
 
   const { data, role } = await modal.onWillDismiss();
 
-  if (role === 'select') {
-    console.log("[Data]", data)
-   await  router.push({ name: "Bingo", params: { id: data } })
+  if (role === "select") {
+    await router.push({ name: "Bingo", params: { id: data } });
   }
 };
-
-
 </script>
 
 <style scoped>
