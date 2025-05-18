@@ -34,8 +34,8 @@ import {
   IonButtons
 } from '@ionic/vue';
 import {menu, trophy} from "ionicons/icons";
-import ThemeSelectorModal from "@/views/ThemeSelectorModal.vue";
 import {useRouter} from "vue-router";
+import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 
 const router = useRouter()
 const openThemeSelectorModal = async () => {

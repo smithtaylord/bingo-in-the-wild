@@ -34,11 +34,11 @@
               :key="colIndex"
               size="2"
               class="bingo-cell"
-              :class="{ marked: cell.marked }"
+              :class="{ marked: cell.isMarked }"
               @click="toggleCell(rowIndex, colIndex)"
           >
             <div class="bingo-box">
-              <h2>{{ cell.text }}</h2>
+              <h2>{{ cell.label }}</h2>
             </div>
           </ion-col>
         </ion-row>
@@ -51,12 +51,12 @@
         </ion-button> 
         
         
-        <ion-button color="salmon" shape="round" class="bingo-page-button ion-margin-bottom">
+        <ion-button color="salmon" shape="round" class="bingo-page-button ion-margin-bottom" @click="resetGame">
           <ion-icon slot="start" :icon="trashBin"></ion-icon>
           Reset Game
         </ion-button>        
         
-        <ion-button color="salmon" shape="round" class="bingo-page-button ion-margin-bottom">
+        <ion-button color="salmon" shape="round" class="bingo-page-button ion-margin-bottom" @click="goHome">
           <ion-icon slot="start" :icon="home"></ion-icon>
           Home
         </ion-button>
@@ -71,22 +71,45 @@
 
 import {IonButton, IonButtons, IonHeader, IonIcon, IonPage, IonContent, IonText, IonRow, IonCol, IonGrid} from "@ionic/vue";
 import {home, list, menu, trashBin} from "ionicons/icons";
-import {ref} from "vue";
+import {Ref, ref, watch, watchEffect} from "vue";
+import {useRouter} from "vue-router";
+import {BingoCell, checkWinner, clearBoard} from "@/views/bingo-game/bingoGameService";
 
 const props = defineProps<{id: string}>()
-
-const board = ref([
-  [{ text: '🍕' }, { text: '🎉' }, { text: '👀' }, { text: '🎯' }, { text: '🍀' }],
-  [{ text: '💃' }, { text: '🕺' }, { text: '🚀' }, { text: '🧃' }, { text: '📸' }],
-  [{ text: '🎸' }, { text: '🥳' }, { text: 'Free', marked: true }, { text: '🌈' }, { text: '🦄' }],
-  [{ text: '🐶' }, { text: '🏀' }, { text: '🧁' }, { text: '👟' }, { text: '🍩' }],
-  [{ text: '🎮' }, { text: '🎨' }, { text: '🧠' }, { text: '🌮' }, { text: '📚' }]
+const router = useRouter()
+const winner = ref<boolean>(false)
+const board: Ref<BingoCell[][]> = ref([
+  [{ label: '🍕' }, { label: '🎉' }, { label: '👀' }, { label: '🎯' }, { label: '🍀' }],
+  [{ label: '💃' }, { label: '🕺' }, { label: '🚀' }, { label: '🧃' }, { label: '📸' }],
+  [{ label: '🎸' }, { label: '🥳' }, { label: 'Free', isMarked: true, isFreeSpace: true }, { label: '🌈' }, { label: '🦄' }],
+  [{ label: '🐶' }, { label: '🏀' }, { label: '🧁' }, { label: '👟' }, { label: '🍩' }],
+  [{ label: '🎮' }, { label: '🎨' }, { label: '🧠' }, { label: '🌮' }, { label: '📚' }]
 ]);
 
 const toggleCell = (rowIndex: number, colIndex: number) => {
   const cell = board.value[rowIndex][colIndex];
-  cell.marked = !cell.marked;
+  cell.isMarked = !cell.isMarked;
 }
+
+const resetGame = () => {
+  clearBoard(board.value)
+}
+const goHome = () => {
+  router.push({ name: 'Home' });
+}
+
+
+watch(board.value, ()=> {
+  winner.value = checkWinner(board.value)
+})
+
+watch(() => winner.value, ()=> {
+  if (winner.value) {
+    window.alert("YOU WON!")
+  }
+})
+
+
 
 
 // TODO need to put together a list of all possible winners and if there is a winner we need to do some sort of BINGO Overlay and convetti or something fun
