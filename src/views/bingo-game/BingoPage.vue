@@ -114,10 +114,10 @@ import {
   IonText,
   popoverController,
   toastController,
+  useIonRouter,
 } from "@ionic/vue";
 import { home, list, menu, trashBin, warning } from "ionicons/icons";
 import { onMounted, Ref, ref, watch } from "vue";
-import { useRouter } from "vue-router";
 import {
   BingoCell,
   checkWinner,
@@ -127,13 +127,15 @@ import { BingoGameAPI } from "@/views/bingo-game/bingoGameAPI";
 import BingoCellPopover from "@/views/bingo-game/BingoCellPopover.vue";
 import BingoListOptionsModal from "@/views/bingo-game/BingoListOptionsModal.vue";
 import MiniGrid from "@/views/bingo-game/MiniGrid.vue";
+import JSConfetti from "js-confetti";
 
 const props = defineProps<{ id: string }>();
-const router = useRouter();
+const ionRouter = useIonRouter();
 const winner = ref<boolean>(false);
 const board: Ref<BingoCell[][]> = ref([]);
 const themeName = ref<string>();
 const api = new BingoGameAPI();
+const jsConfetti = new JSConfetti();
 
 let pressTimer: number | null = null;
 let currentPopover: HTMLIonPopoverElement | null = null;
@@ -192,10 +194,21 @@ const resetGame = () => {
   clearBoard(board.value);
 };
 const goHome = () => {
-  router.push({ name: "Home" });
+  ionRouter.push({ name: "Home" });
 };
 
 const winningGameAlert = async () => {
+  jsConfetti.addConfetti({
+    confettiNumber: 500,
+    confettiColors: [
+      "#ff0a54",
+      "#ff477e",
+      "#ff7096",
+      "#ff85a1",
+      "#fbb1bd",
+      "#f9bec7",
+    ],
+  });
   const alert = await alertController.create({
     header: "BINGO!",
     subHeader: "Congratulations, you won!",

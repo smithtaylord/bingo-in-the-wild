@@ -38,12 +38,12 @@ import {
   IonPage,
   IonText,
   modalController,
+  useIonRouter,
 } from "@ionic/vue";
 import { menu, trophy } from "ionicons/icons";
-import { useRouter } from "vue-router";
 import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 
-const router = useRouter();
+const ionRouter = useIonRouter();
 const openThemeSelectorModal = async () => {
   const modal = await modalController.create({
     component: ThemeSelectorModal,
@@ -54,7 +54,7 @@ const openThemeSelectorModal = async () => {
   const { data, role } = await modal.onWillDismiss();
 
   if (role === "select") {
-    await router.push({ name: "Bingo", params: { id: data } });
+    await ionRouter.push({ name: "Bingo", params: { id: data } });
   }
 };
 </script>
