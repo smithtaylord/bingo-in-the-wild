@@ -39,9 +39,14 @@
             class="bingo-cell"
             size="2"
             @click="toggleCell(rowIndex, colIndex)"
+            @mouseenter="showPopoverHover($event, cell.label)"
+            @mouseleave="hidePopoverHover"
+            @touchcancel="cancelPress"
+            @touchend="cancelPress"
+            @touchstart="startPress($event, cell.label)"
           >
             <div class="bingo-box">
-              <span>{{ cell.label }}</span>
+              <span class="bingo-cell-text">{{ cell.label }}</span>
             </div>
           </ion-col>
         </ion-row>
@@ -52,6 +57,7 @@
           class="bingo-page-button ion-margin-bottom"
           color="salmon"
           shape="round"
+          @click="openListViewModal"
         >
           <ion-icon slot="start" :icon="list"></ion-icon>
           List View
@@ -78,6 +84,17 @@
         </ion-button>
       </div>
     </ion-content>
+
+    <ion-modal
+      :breakpoints="[0, 1]"
+      :initial-breakpoint="1"
+      :is-open="isModalOpen"
+      class="bingo-list-modal"
+      @didDismiss="isModalOpen = false"
+    >
+      <BingoListOptionsModal :board="board" @cell-toggled="handleCellToggled" />
+    </ion-modal>
+    <MiniGrid v-if="isModalOpen" :board="board" class="mini-grid" />
   </ion-page>
 </template>
 
@@ -91,9 +108,11 @@ import {
   IonGrid,
   IonHeader,
   IonIcon,
+  IonModal,
   IonPage,
   IonRow,
   IonText,
+  popoverController,
   toastController,
 } from "@ionic/vue";
 import { home, list, menu, trashBin, warning } from "ionicons/icons";
@@ -105,6 +124,9 @@ import {
   clearBoard,
 } from "@/views/bingo-game/bingoGameService";
 import { BingoGameAPI } from "@/views/bingo-game/bingoGameAPI";
+import BingoCellPopover from "@/views/bingo-game/BingoCellPopover.vue";
+import BingoListOptionsModal from "@/views/bingo-game/BingoListOptionsModal.vue";
+import MiniGrid from "@/views/bingo-game/MiniGrid.vue";
 
 const props = defineProps<{ id: string }>();
 const router = useRouter();
@@ -113,9 +135,57 @@ const board: Ref<BingoCell[][]> = ref([]);
 const themeName = ref<string>();
 const api = new BingoGameAPI();
 
+let pressTimer: number | null = null;
+let currentPopover: HTMLIonPopoverElement | null = null;
+
 const toggleCell = (rowIndex: number, colIndex: number) => {
   const cell = board.value[rowIndex][colIndex];
   cell.isMarked = !cell.isMarked;
+};
+
+const startPress = (event: Event, label: string) => {
+  cancelPress(); // Clear any previous timer
+
+  pressTimer = window.setTimeout(async () => {
+    const popover = await popoverController.create({
+      component: BingoCellPopover,
+      componentProps: { label },
+      event,
+      cssClass: "bingo-cell-popover-wrapper",
+      arrow: false,
+    });
+    currentPopover = popover;
+    await popover.present();
+  }, 500);
+};
+
+const cancelPress = () => {
+  if (pressTimer) {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+  }
+};
+
+const showPopoverHover = async (event: Event, label: string) => {
+  // Only show on non-touch devices ideally — so maybe check window.matchMedia here
+  if ("ontouchstart" in window) return; // skip on touch devices
+
+  const popover = await popoverController.create({
+    component: BingoCellPopover,
+    componentProps: { label },
+    event,
+    cssClass: "bingo-cell-popover-wrapper",
+    arrow: false,
+  });
+  currentPopover = popover;
+  await popover.present();
+};
+
+const hidePopoverHover = async () => {
+  if (currentPopover) {
+    await currentPopover.dismiss();
+    currentPopover = null;
+  }
 };
 
 const resetGame = () => {
@@ -184,9 +254,20 @@ onMounted(async () => {
     board.value = gameBoard;
   }
 });
+
+// List View
+const isModalOpen = ref(false);
+
+const openListViewModal = async () => {
+  isModalOpen.value = true;
+};
+
+const handleCellToggled = ([rowIndex, colIndex]) => {
+  toggleCell(rowIndex, colIndex);
+};
 </script>
 
-<style scoped>
+<style>
 .bingo-header {
   display: flex;
   justify-content: center;
@@ -203,7 +284,7 @@ onMounted(async () => {
 .bingo-box {
   background-color: var(--ion-color-white);
   color: var(--ion-color-dark-green);
-  font-size: 0.5rem;
+  font-size: 0.75rem;
   text-wrap: auto;
   overflow-x: hidden;
 }
@@ -225,5 +306,40 @@ onMounted(async () => {
 
 .bingo-page-button {
   width: 65vw;
+}
+
+.bingo-cell-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  max-height: 2.4em;
+}
+
+.bingo-cell-popover-wrapper {
+  --width: 33vw;
+  --height: 33vw;
+  --border-radius: 0;
+  --box-shadow: 2px 2px 4px #000;
+  --background: white;
+}
+
+.bingo-list-modal {
+  --height: 66vh;
+}
+
+.mini-grid {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  background-color: white;
+  padding: 4px;
+  border-radius: 4px;
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+  transform-origin: top right;
+  pointer-events: none;
 }
 </style>
