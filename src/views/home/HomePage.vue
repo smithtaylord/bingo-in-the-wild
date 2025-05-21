@@ -1,12 +1,6 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-buttons slot="start">
-        <ion-button class="ion-padding" color="dark-green">
-          <ion-icon :icon="menu" />
-        </ion-button>
-      </ion-buttons>
-    </ion-header>
+    <MenuPageHeader title="Home" />
     <ion-content class="ion-padding" fullscreen>
       <div
         class="d-flex flex-column justify-content-center align-items-center h-100"
@@ -31,17 +25,16 @@
 <script lang="ts" setup>
 import {
   IonButton,
-  IonButtons,
   IonContent,
-  IonHeader,
   IonIcon,
   IonPage,
   IonText,
   modalController,
   useIonRouter,
 } from "@ionic/vue";
-import { menu, trophy } from "ionicons/icons";
+import { trophy } from "ionicons/icons";
 import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
+import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 
 const ionRouter = useIonRouter();
 const openThemeSelectorModal = async () => {

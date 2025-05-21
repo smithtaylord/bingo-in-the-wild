@@ -1,12 +1,6 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-buttons slot="start">
-        <ion-button class="ion-padding" color="dark-green">
-          <ion-icon :icon="menu" />
-        </ion-button>
-      </ion-buttons>
-    </ion-header>
+    <MenuPageHeader title="Bingo in the Wild" />
     <ion-content>
       <ion-text class="ion-text-center" color="dark-green">
         <h4>Theme: {{ themeName }}</h4>
@@ -102,11 +96,9 @@
 import {
   alertController,
   IonButton,
-  IonButtons,
   IonCol,
   IonContent,
   IonGrid,
-  IonHeader,
   IonIcon,
   IonModal,
   IonPage,
@@ -116,7 +108,7 @@ import {
   toastController,
   useIonRouter,
 } from "@ionic/vue";
-import { home, list, menu, trashBin, warning } from "ionicons/icons";
+import { home, list, trashBin, warning } from "ionicons/icons";
 import { onMounted, Ref, ref, watch } from "vue";
 import {
   BingoCell,
@@ -128,6 +120,7 @@ import BingoCellPopover from "@/views/bingo-game/BingoCellPopover.vue";
 import BingoListOptionsModal from "@/views/bingo-game/BingoListOptionsModal.vue";
 import MiniGrid from "@/views/bingo-game/MiniGrid.vue";
 import JSConfetti from "js-confetti";
+import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 
 const props = defineProps<{ id: string }>();
 const ionRouter = useIonRouter();
