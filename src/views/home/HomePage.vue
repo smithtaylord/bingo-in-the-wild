@@ -5,7 +5,19 @@
       <div
         class="d-flex flex-column justify-content-center align-items-center h-100"
       >
-        <ion-text color="dark-green">
+        <div class="ion-padding-bottom ion-margin-bottom">
+          <ion-icon :icon="leafOutline" />
+          <ion-icon :icon="leafOutline" color="white" />
+          <ion-icon :icon="roseOutline" />
+          <ion-icon
+            :icon="leafOutline"
+            color="white"
+            style="transform: scaleX(-1)"
+          />
+          <ion-icon :icon="leafOutline" style="transform: scaleX(-1)" />
+        </div>
+
+        <ion-text class="ion-padding-top ion-margin-top" color="dark-green">
           <h1 class="home-title">Bingo in the Wild</h1>
         </ion-text>
         <ion-button
@@ -14,7 +26,7 @@
           size="large"
           @click="openThemeSelectorModal"
         >
-          <ion-icon slot="start" :icon="trophy" />
+          <ion-icon slot="start" :icon="trophy" size="large" />
           <span>Choose a Theme</span>
         </ion-button>
       </div>
@@ -32,7 +44,7 @@ import {
   modalController,
   useIonRouter,
 } from "@ionic/vue";
-import { trophy } from "ionicons/icons";
+import { leafOutline, roseOutline, trophy } from "ionicons/icons";
 import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 
@@ -57,5 +69,9 @@ const openThemeSelectorModal = async () => {
   font-weight: bolder;
   font-size: 30pt;
   margin-bottom: 50px;
+}
+
+ion-icon {
+  font-size: 64px;
 }
 </style>
