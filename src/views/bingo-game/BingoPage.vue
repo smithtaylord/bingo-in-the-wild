@@ -6,45 +6,28 @@
         <h4>Theme: {{ themeName }}</h4>
       </ion-text>
 
-      <ion-grid class="bingo-grid ion-margin-bottom">
-        <ion-row class="ion-justify-content-center">
-          <ion-col
-            v-for="letter in 'BINGO'"
-            :key="letter"
-            class="bingo-header"
-            size="2"
-          >
-            <div class="bingo-box-header">
-              <h1>{{ letter }}</h1>
-            </div>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-      <ion-grid class="ion-margin-vertical">
-        <ion-row
-          v-for="(row, rowIndex) in board"
-          :key="rowIndex"
-          class="ion-justify-content-center"
+      <div class="bingo-grid ion-margin-bottom">
+        <div v-for="letter in 'BINGO'" :key="letter" class="bingo-header">
+          <div class="bingo-box-header">
+            <h1>{{ letter }}</h1>
+          </div>
+        </div>
+      </div>
+
+      <div class="bingo-grid">
+        <div
+          v-for="(cell, index) in flatBoard"
+          :key="index"
+          @click="toggleCell(cell.row, cell.col)"
+          @touchcancel="cancelPress"
+          @touchend="cancelPress"
+          @touchstart="startPress($event, cell.label)"
         >
-          <ion-col
-            v-for="(cell, colIndex) in row"
-            :key="colIndex"
-            :class="{ marked: cell.isMarked }"
-            class="bingo-cell"
-            size="2"
-            @click="toggleCell(rowIndex, colIndex)"
-            @mouseenter="showPopoverHover($event, cell.label)"
-            @mouseleave="hidePopoverHover"
-            @touchcancel="cancelPress"
-            @touchend="cancelPress"
-            @touchstart="startPress($event, cell.label)"
-          >
-            <div class="bingo-box">
-              <span class="bingo-cell-text">{{ cell.label }}</span>
-            </div>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+          <div :class="['bingo-box', { marked: cell.isMarked }]">
+            <span class="bingo-cell-text">{{ cell.label }}</span>
+          </div>
+        </div>
+      </div>
 
       <div class="justify-content-center align-items-center d-flex flex-column">
         <ion-button
@@ -96,20 +79,17 @@
 import {
   alertController,
   IonButton,
-  IonCol,
   IonContent,
-  IonGrid,
   IonIcon,
   IonModal,
   IonPage,
-  IonRow,
   IonText,
   popoverController,
   toastController,
   useIonRouter,
 } from "@ionic/vue";
 import { home, list, trashBin, warning } from "ionicons/icons";
-import { onMounted, Ref, ref, watch } from "vue";
+import { computed, onMounted, Ref, ref, watch } from "vue";
 import {
   BingoCell,
   checkWinner,
@@ -126,6 +106,17 @@ const props = defineProps<{ id: string }>();
 const ionRouter = useIonRouter();
 const winner = ref<boolean>(false);
 const board: Ref<BingoCell[][]> = ref([]);
+
+const flatBoard = computed(() =>
+  board.value.flatMap((row, rowIndex) =>
+    row.map((cell, colIndex) => ({
+      ...cell,
+      row: rowIndex,
+      col: colIndex,
+    })),
+  ),
+);
+
 const themeName = ref<string>();
 const api = new BingoGameAPI();
 const jsConfetti = new JSConfetti();
@@ -148,6 +139,7 @@ const startPress = (event: Event, label: string) => {
       event,
       cssClass: "bingo-cell-popover-wrapper",
       arrow: false,
+      side: "top",
     });
     currentPopover = popover;
     await popover.present();
@@ -158,28 +150,6 @@ const cancelPress = () => {
   if (pressTimer) {
     clearTimeout(pressTimer);
     pressTimer = null;
-  }
-};
-
-const showPopoverHover = async (event: Event, label: string) => {
-  // Only show on non-touch devices ideally — so maybe check window.matchMedia here
-  if ("ontouchstart" in window) return; // skip on touch devices
-
-  const popover = await popoverController.create({
-    component: BingoCellPopover,
-    componentProps: { label },
-    event,
-    cssClass: "bingo-cell-popover-wrapper",
-    arrow: false,
-  });
-  currentPopover = popover;
-  await popover.present();
-};
-
-const hidePopoverHover = async () => {
-  if (currentPopover) {
-    await currentPopover.dismiss();
-    currentPopover = null;
   }
 };
 
@@ -268,12 +238,21 @@ const openListViewModal = async () => {
   isModalOpen.value = true;
 };
 
-const handleCellToggled = ([rowIndex, colIndex]) => {
+const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
   toggleCell(rowIndex, colIndex);
 };
 </script>
 
 <style>
+.bingo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  box-sizing: border-box;
+}
+
 .bingo-header {
   display: flex;
   justify-content: center;
@@ -316,12 +295,20 @@ const handleCellToggled = ([rowIndex, colIndex]) => {
 
 .bingo-cell-text {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
-  max-height: 2.4em;
+
+  white-space: normal;
+  word-break: break-word;
+  text-align: center;
+
+  font-size: clamp(0.6rem, 1.5vw, 1rem); /* Slightly raised floor and ceiling */
+  line-height: 1.25; /* Enough breathing room */
+  max-height: calc(1.25em * 2); /* 2 lines max */
+  padding: 0.1em; /* Prevent text from touching edges */
 }
 
 .bingo-cell-popover-wrapper {
