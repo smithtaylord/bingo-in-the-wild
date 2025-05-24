@@ -1,7 +1,7 @@
 <template>
   <ion-menu content-id="main-content" type="overlay">
     <ion-header>
-      <ion-toolbar color="salmon">
+      <ion-toolbar color="coral">
         <ion-title color="white">Menu</ion-title>
       </ion-toolbar>
     </ion-header>

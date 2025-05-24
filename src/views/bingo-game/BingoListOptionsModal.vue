@@ -1,14 +1,14 @@
 <template>
   <ion-content class="modal">
     <ion-item-group v-for="(row, rowIndex) in board" :key="rowIndex">
-      <ion-item-divider color="medium">
+      <ion-item-divider color="dusty-green">
         <ion-label color="white">{{ groupLabel[rowIndex] }}</ion-label>
       </ion-item-divider>
 
       <ion-item
         v-for="(cell, colIndex) in row"
         :key="cell.label"
-        :color="cell.isMarked ? 'salmon' : 'white'"
+        :color="cell.isMarked ? 'coral' : 'white'"
         @click="toggleCell(rowIndex, colIndex)"
       >
         <ion-label :color="cell.isMarked ? 'white' : 'dark-green'">

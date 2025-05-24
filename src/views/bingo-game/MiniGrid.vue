@@ -43,6 +43,6 @@ defineProps<{
 }
 
 .mini-cell.marked {
-  background-color: var(--ion-color-salmon);
+  background-color: var(--ion-color-coral);
 }
 </style>

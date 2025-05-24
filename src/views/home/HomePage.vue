@@ -7,11 +7,11 @@
       >
         <div class="ion-padding-bottom ion-margin-bottom">
           <ion-icon :icon="leafOutline" />
-          <ion-icon :icon="leafOutline" color="white" />
+          <ion-icon :icon="leafOutline" color="coral" />
           <ion-icon :icon="roseOutline" />
           <ion-icon
             :icon="leafOutline"
-            color="white"
+            color="coral"
             style="transform: scaleX(-1)"
           />
           <ion-icon :icon="leafOutline" style="transform: scaleX(-1)" />
@@ -21,13 +21,13 @@
           <h1 class="home-title">Bingo in the Wild</h1>
         </ion-text>
         <ion-button
-          color="salmon"
+          color="dusty-green"
           shape="round"
           size="large"
           @click="openThemeSelectorModal"
         >
           <ion-icon slot="start" :icon="trophy" size="large" />
-          <span>Choose a Theme</span>
+          Choose a Theme
         </ion-button>
       </div>
     </ion-content>

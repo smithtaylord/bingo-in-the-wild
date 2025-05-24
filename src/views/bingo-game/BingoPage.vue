@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <div class="bingo-grid">
+      <div class="bingo-grid ion-margin-bottom">
         <div
           v-for="(cell, index) in flatBoard"
           :key="index"
@@ -32,31 +32,31 @@
       <div class="justify-content-center align-items-center d-flex flex-column">
         <ion-button
           class="bingo-page-button ion-margin-bottom"
-          color="salmon"
+          color="dusty-green"
           shape="round"
           @click="openListViewModal"
         >
-          <ion-icon slot="start" :icon="list"></ion-icon>
+          <ion-icon slot="start" :icon="list" />
           List View
         </ion-button>
 
         <ion-button
           class="bingo-page-button ion-margin-bottom"
-          color="salmon"
+          color="dusty-green"
           shape="round"
           @click="resetGame"
         >
-          <ion-icon slot="start" :icon="trashBin"></ion-icon>
+          <ion-icon slot="start" :icon="trashBin" />
           Reset Game
         </ion-button>
 
         <ion-button
           class="bingo-page-button ion-margin-bottom"
-          color="salmon"
+          color="dusty-green"
           shape="round"
           @click="goHome"
         >
-          <ion-icon slot="start" :icon="home"></ion-icon>
+          <ion-icon slot="start" :icon="home" />
           Home
         </ion-button>
       </div>
@@ -164,12 +164,12 @@ const winningGameAlert = async () => {
   jsConfetti.addConfetti({
     confettiNumber: 500,
     confettiColors: [
-      "#ff0a54",
-      "#ff477e",
-      "#ff7096",
-      "#ff85a1",
-      "#fbb1bd",
-      "#f9bec7",
+      "#FF9F80", // true coral
+      "#FFB38A", // light coral peach
+      "#FF8C66", // vibrant coral-orange
+      "#FFA07A", // salmony coral
+      "#FFD0B3", // soft coral blush
+      "#FFE3D5", // very pale coral/peach
     ],
   });
   const alert = await alertController.create({
@@ -178,10 +178,12 @@ const winningGameAlert = async () => {
     buttons: [
       {
         text: "Home",
+        cssClass: "bingo-alert-button",
         handler: () => goHome(),
       },
       {
         text: "Rest Game",
+        cssClass: "bingo-alert-button",
         handler: () => resetGame(),
       },
     ],
@@ -260,10 +262,12 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
 }
 
 .bingo-box-header {
-  background-color: var(--ion-color-salmon);
+  background-color: var(--ion-color-dusty-green);
   color: var(--ion-color-white);
   font-size: 1.5rem;
   border-radius: 8px;
+  text-shadow: 1px 1px 5px var(--ion-color-dark-green);
+  box-shadow: 1px 1px 2px var(--ion-color-dark-green);
 }
 
 .bingo-box {
@@ -272,6 +276,7 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
   font-size: 0.75rem;
   text-wrap: auto;
   overflow-x: hidden;
+  box-shadow: 1px 1px 2px var(--ion-color-dark-green);
 }
 
 .bingo-box,
@@ -285,7 +290,7 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
 }
 
 .marked {
-  background-color: var(--ion-color-salmon);
+  background-color: var(--ion-color-coral);
   color: var(--ion-color-white);
 }
 
@@ -334,5 +339,9 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
   box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
   transform-origin: top right;
   pointer-events: none;
+}
+
+.bingo-alert-button {
+  color: var(--ion-color-dark-green) !important;
 }
 </style>
