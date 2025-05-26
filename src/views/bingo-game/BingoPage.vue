@@ -90,7 +90,7 @@ import {
   useIonRouter,
 } from "@ionic/vue";
 import { home, list, trashBin, warning } from "ionicons/icons";
-import { computed, onMounted, Ref, ref, watch } from "vue";
+import { computed, Ref, ref, watch } from "vue";
 import {
   addBoardToLocalStorage,
   BingoCell,
@@ -230,8 +230,6 @@ watch(
 );
 
 onIonViewWillEnter(async () => {
-  // Make sure that the board is cleared on page load
-  resetGame();
   themeName.value = api.getThemeName(parseInt(props.id));
 
   const savedGameBoard = retrieveBoardFromLocalStorage();
