@@ -2,63 +2,67 @@
   <ion-page>
     <MenuPageHeader title="Bingo in the Wild" />
     <ion-content>
-      <ion-text class="ion-text-center" color="dark-green">
-        <h4>Theme: {{ themeName }}</h4>
-      </ion-text>
+      <div class="bingo-card-container">
+        <ion-text class="ion-text-center" color="dark-green">
+          <h4>Theme: {{ themeName }}</h4>
+        </ion-text>
 
-      <div class="bingo-grid ion-margin-bottom">
-        <div v-for="letter in 'BINGO'" :key="letter" class="bingo-header">
-          <div class="bingo-box-header">
-            <h1>{{ letter }}</h1>
+        <div class="bingo-grid ion-margin-bottom">
+          <div v-for="letter in 'BINGO'" :key="letter" class="bingo-header">
+            <div class="bingo-box-header">
+              <h1>{{ letter }}</h1>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="bingo-grid ion-margin-bottom">
+        <div class="bingo-grid ion-margin-bottom">
+          <div
+            v-for="(cell, index) in flatBoard"
+            :key="index"
+            @click="toggleCell(cell.row, cell.col)"
+            @touchcancel="cancelPress"
+            @touchend="cancelPress"
+            @touchstart="startPress($event, cell.label)"
+          >
+            <div :class="['bingo-box', { marked: cell.isMarked }]">
+              <span class="bingo-cell-text">{{ cell.label }}</span>
+            </div>
+          </div>
+        </div>
+
         <div
-          v-for="(cell, index) in flatBoard"
-          :key="index"
-          @click="toggleCell(cell.row, cell.col)"
-          @touchcancel="cancelPress"
-          @touchend="cancelPress"
-          @touchstart="startPress($event, cell.label)"
+          class="justify-content-center align-items-center d-flex flex-column"
         >
-          <div :class="['bingo-box', { marked: cell.isMarked }]">
-            <span class="bingo-cell-text">{{ cell.label }}</span>
-          </div>
+          <ion-button
+            class="bingo-page-button ion-margin-bottom"
+            color="dusty-green"
+            shape="round"
+            @click="openListViewModal"
+          >
+            <ion-icon slot="start" :icon="list" />
+            List View
+          </ion-button>
+
+          <ion-button
+            class="bingo-page-button ion-margin-bottom"
+            color="dusty-green"
+            shape="round"
+            @click="resetGame"
+          >
+            <ion-icon slot="start" :icon="trashBin" />
+            Reset Game
+          </ion-button>
+
+          <ion-button
+            class="bingo-page-button ion-margin-bottom"
+            color="dusty-green"
+            shape="round"
+            @click="goHome"
+          >
+            <ion-icon slot="start" :icon="home" />
+            Home
+          </ion-button>
         </div>
-      </div>
-
-      <div class="justify-content-center align-items-center d-flex flex-column">
-        <ion-button
-          class="bingo-page-button ion-margin-bottom"
-          color="dusty-green"
-          shape="round"
-          @click="openListViewModal"
-        >
-          <ion-icon slot="start" :icon="list" />
-          List View
-        </ion-button>
-
-        <ion-button
-          class="bingo-page-button ion-margin-bottom"
-          color="dusty-green"
-          shape="round"
-          @click="resetGame"
-        >
-          <ion-icon slot="start" :icon="trashBin" />
-          Reset Game
-        </ion-button>
-
-        <ion-button
-          class="bingo-page-button ion-margin-bottom"
-          color="dusty-green"
-          shape="round"
-          @click="goHome"
-        >
-          <ion-icon slot="start" :icon="home" />
-          Home
-        </ion-button>
       </div>
     </ion-content>
 
@@ -360,5 +364,10 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
 
 .bingo-alert-button {
   color: var(--ion-color-dark-green) !important;
+}
+
+.bingo-card-container {
+  max-width: 600px;
+  margin: auto;
 }
 </style>
