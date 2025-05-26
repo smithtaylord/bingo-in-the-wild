@@ -47,6 +47,7 @@ import {
 import { leafOutline, roseOutline, trophy } from "ionicons/icons";
 import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
+import { removeBoardFromLocalStorage } from "@/views/bingo-game/bingoGameService";
 
 const ionRouter = useIonRouter();
 const openThemeSelectorModal = async () => {
@@ -59,7 +60,9 @@ const openThemeSelectorModal = async () => {
   const { data, role } = await modal.onWillDismiss();
 
   if (role === "select") {
-    await ionRouter.push({ name: "Bingo", params: { id: data } });
+    // If there was a game stored in local storage, make sure it is removed before starting to play a new game
+    removeBoardFromLocalStorage();
+    ionRouter.push({ name: "Bingo", params: { id: data } });
   }
 };
 </script>

@@ -84,6 +84,7 @@ import {
   IonModal,
   IonPage,
   IonText,
+  onIonViewWillEnter,
   popoverController,
   toastController,
   useIonRouter,
@@ -91,9 +92,12 @@ import {
 import { home, list, trashBin, warning } from "ionicons/icons";
 import { computed, onMounted, Ref, ref, watch } from "vue";
 import {
+  addBoardToLocalStorage,
   BingoCell,
   checkWinner,
   clearBoard,
+  removeBoardFromLocalStorage,
+  retrieveBoardFromLocalStorage,
 } from "@/views/bingo-game/bingoGameService";
 import { BingoGameAPI } from "@/views/bingo-game/bingoGameAPI";
 import BingoCellPopover from "@/views/bingo-game/BingoCellPopover.vue";
@@ -127,6 +131,8 @@ let currentPopover: HTMLIonPopoverElement | null = null;
 const toggleCell = (rowIndex: number, colIndex: number) => {
   const cell = board.value[rowIndex][colIndex];
   cell.isMarked = !cell.isMarked;
+
+  addBoardToLocalStorage(board.value);
 };
 
 const startPress = (event: Event, label: string) => {
@@ -154,9 +160,11 @@ const cancelPress = () => {
 };
 
 const resetGame = () => {
+  removeBoardFromLocalStorage();
   clearBoard(board.value);
 };
 const goHome = () => {
+  removeBoardFromLocalStorage();
   ionRouter.push({ name: "Home" });
 };
 
@@ -221,16 +229,27 @@ watch(
   },
 );
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
+  // Make sure that the board is cleared on page load
+  resetGame();
   themeName.value = api.getThemeName(parseInt(props.id));
+
+  const savedGameBoard = retrieveBoardFromLocalStorage();
+  if (savedGameBoard) {
+    board.value = savedGameBoard;
+    return;
+  }
+
   const gameBoard: BingoCell[][] | null = api.createGameBoard(
     parseInt(props.id),
   );
+
   if (!gameBoard) {
     await invalidThemeId();
-  } else {
-    board.value = gameBoard;
+    return;
   }
+
+  board.value = gameBoard;
 });
 
 // List View
