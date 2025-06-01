@@ -172,6 +172,24 @@ const goHome = () => {
   ionRouter.push({ name: "Home" });
 };
 
+const createBoard = async () => {
+  const gameBoard: BingoCell[][] | null = api.createGameBoard(
+    parseInt(props.id),
+  );
+
+  if (!gameBoard) {
+    await invalidThemeId();
+    return;
+  }
+
+  board.value = gameBoard;
+};
+
+const shuffleAndResetGame = async () => {
+  resetGame();
+  await createBoard();
+};
+
 const winningGameAlert = async () => {
   jsConfetti.addConfetti({
     confettiNumber: 500,
@@ -194,9 +212,9 @@ const winningGameAlert = async () => {
         handler: () => goHome(),
       },
       {
-        text: "Rest Game",
+        text: "Play again",
         cssClass: "bingo-alert-button",
-        handler: () => resetGame(),
+        handler: () => shuffleAndResetGame(),
       },
     ],
   });
@@ -242,16 +260,7 @@ onIonViewWillEnter(async () => {
     return;
   }
 
-  const gameBoard: BingoCell[][] | null = api.createGameBoard(
-    parseInt(props.id),
-  );
-
-  if (!gameBoard) {
-    await invalidThemeId();
-    return;
-  }
-
-  board.value = gameBoard;
+  await createBoard();
 });
 
 // List View
