@@ -1,0 +1,7 @@
+{
+  "name": "bingo-in-the-wild",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
