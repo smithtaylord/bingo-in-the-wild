@@ -20,16 +20,58 @@
         <ion-text class="ion-padding-top ion-margin-top" color="dark-green">
           <h1 class="home-title">Bingo in the Wild</h1>
         </ion-text>
+
+        <ion-button v-if="loggedIn"
+                    class="home-btn"
+                    color="dusty-green"
+                    shape="round"
+                    size="large"
+                    @click="startGame"
+        >           <span class="align-left">
+
+          <ion-icon slot="start" :icon="trophy" size="large"/>
+          Start a New Game</span>
+        </ion-button>
+        <ion-button v-else
+                    class="home-btn"
+                    color="dusty-green"
+                    shape="round" size="large"
+
+                    @click="openThemeSelectorModal"
+        >          <span class="align-left">
+
+          <ion-icon slot="start" :icon="trophy" size="large"/>
+          Choose a Theme</span>
+        </ion-button>
+
         <ion-button
+            class="home-btn"
             color="dusty-green"
             shape="round"
             size="large"
-            @click="openThemeSelectorModal"
+
+            @click="joinGame"
         >
-          <ion-icon slot="start" :icon="trophy" size="large"/>
-          Choose a Theme
+                    <span class="align-left">
+          <ion-icon slot="start" :icon="addOutline" size="large"/>
+                      Join a Game</span>
         </ion-button>
-        <LoginLogoutHomePage/>
+        <!--// TODO WHEN JOINING A NEW GAME IS CLICKED SHOW AN INPUT FIELD READY FOR A CODE-->
+
+        <ion-button v-if="!loggedIn"
+                    class="home-btn"
+                    color="coral"
+                    shape="round"
+                    size="large"
+
+                    @click="login">
+          <span class="align-left">
+            <ion-icon slot="start" :icon="logInOutline" size="large"/>
+          Log in
+          </span>
+        </ion-button>
+
+        <!--        <LoginLogoutHomePage/>-->
       </div>
     </ion-content>
   </ion-page>
@@ -37,13 +79,16 @@
 
 <script lang="ts" setup>
 import {IonButton, IonContent, IonIcon, IonPage, IonText, modalController, useIonRouter,} from "@ionic/vue";
-import {leafOutline, roseOutline, trophy} from "ionicons/icons";
+import {addOutline, leafOutline, logInOutline, roseOutline, trophy} from "ionicons/icons";
 import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 import {removeBoardFromLocalStorage} from "@/views/bingo-game/bingoGameService";
-import LoginLogoutHomePage from "@/views/login-logout/LoginLogoutHomePage.vue";
+import {computed} from "vue";
+import {isLoggedIn, login} from "@/services/auth";
 
 const ionRouter = useIonRouter();
+const loggedIn = computed(() => isLoggedIn());
+
 const openThemeSelectorModal = async () => {
   const modal = await modalController.create({
     component: ThemeSelectorModal,
@@ -59,6 +104,16 @@ const openThemeSelectorModal = async () => {
     ionRouter.push({name: "Bingo", params: {id: data}});
   }
 };
+
+const startGame = () => {
+  //TODO implement start game logic
+  console.log("Start game clicked");
+};
+
+const joinGame = () => {
+  // TODO` implement join game logic
+  console.log("Join game clicked");
+}
 </script>
 
 <style scoped>
@@ -70,5 +125,23 @@ const openThemeSelectorModal = async () => {
 
 ion-icon {
   font-size: 64px;
+}
+
+.home-btn {
+  width: 80vw;
+  max-width: 500px;
+  margin-bottom: 10px;
+}
+
+.home-btn ion-icon {
+  margin-right: 16px;
+  margin-left: 8px;
+}
+
+.align-left {
+  text-align: left;
+  width: 100%;
+  display: flex;
+  align-items: center;
 }
 </style>

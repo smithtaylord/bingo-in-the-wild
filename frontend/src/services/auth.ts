@@ -1,6 +1,5 @@
-import { ref } from 'vue';
-import {createAuth0Client, Auth0Client, User } from '@auth0/auth0-spa-js';
-import LoginLogoutHomePage from "@/views/login-logout/LoginLogoutHomePage.vue";
+import {ref} from 'vue';
+import {Auth0Client, createAuth0Client, User} from '@auth0/auth0-spa-js';
 
 const isAuthenticated = ref(false);
 const user = ref<User | null>(null);
@@ -24,7 +23,7 @@ export async function initAuth0() {
 
     isAuthenticated.value = await auth0Client.isAuthenticated();
     console.log('User is authenticated:', isAuthenticated.value);
-    user.value = isAuthenticated.value ? await auth0Client.getUser() as User: null;
+    user.value = isAuthenticated.value ? await auth0Client.getUser() as User : null;
     console.log('User data:', user.value);
     if (isAuthenticated.value) {
         await syncUserWithBackend();
@@ -59,7 +58,7 @@ export async function getAccessToken() {
 async function syncUserWithBackend() {
     const token = await getAccessToken();
     const currentUser = await auth0Client.getUser();
-    
+
     console.log('Syncing user with backend using token:', token);
     const response = await fetch('http://localhost:3000/api/user/login', {
         method: 'POST',
@@ -70,7 +69,7 @@ async function syncUserWithBackend() {
         body: JSON.stringify({
             email: currentUser?.email,
             name: currentUser?.name,
-        }),  
+        }),
     });
     console.log('Response from backend:', response);
     if (!response.ok) {
