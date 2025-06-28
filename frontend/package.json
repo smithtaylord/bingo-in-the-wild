@@ -18,7 +18,7 @@
     "@capacitor/haptics": "7.0.0",
     "@capacitor/keyboard": "7.0.0",
     "@capacitor/status-bar": "7.0.0",
-    "@ionic/vue": "^8.0.0",
+    "@ionic/vue": "^8.6.2",
     "@ionic/vue-router": "^8.0.0",
     "ionicons": "^7.0.0",
     "js-confetti": "^0.12.0",

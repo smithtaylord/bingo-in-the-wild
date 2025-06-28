@@ -44,19 +44,37 @@
           Choose a Theme</span>
         </ion-button>
 
-        <ion-button
-            class="home-btn"
-            color="dusty-green"
-            shape="round"
-            size="large"
 
-            @click="joinGame"
+        <div v-if="showJoinOptions">
+          <ion-text align="center" class="ion-padding-top ion-margin-top" color="dark-green">
+            <h5>Enter Code to Join Game</h5>
+          </ion-text>
+          <ion-input-otp :length="6" class="white-fill" color="dark" fill="solid"></ion-input-otp>
+          <div class="join-btn-container">
+            <ion-button
+                color="dark-green"
+                shape="round"
+                size="small"
+                @click="joinGame"
+            >
+              <ion-icon slot="start" :icon="addOutline" size="small"/>
+              Join
+            </ion-button>
+          </div>
+
+        </div>
+
+        <ion-button v-else
+                    class="home-btn"
+                    color="dusty-green"
+                    shape="round"
+                    size="large"
+                    @click="toggleJoinOptions"
         >
                     <span class="align-left">
           <ion-icon slot="start" :icon="addOutline" size="large"/>
                       Join a Game</span>
         </ion-button>
-        <!--// TODO WHEN JOINING A NEW GAME IS CLICKED SHOW AN INPUT FIELD READY FOR A CODE-->
 
         <ion-button v-if="!loggedIn"
                     class="home-btn"
@@ -78,12 +96,12 @@
 </template>
 
 <script lang="ts" setup>
-import {IonButton, IonContent, IonIcon, IonPage, IonText, modalController, useIonRouter,} from "@ionic/vue";
+import {IonButton, IonContent, IonIcon, IonInputOtp, IonPage, IonText, modalController, useIonRouter} from "@ionic/vue";
 import {addOutline, leafOutline, logInOutline, roseOutline, trophy} from "ionicons/icons";
 import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 import {removeBoardFromLocalStorage} from "@/views/bingo-game/bingoGameService";
-import {computed} from "vue";
+import {computed, ref} from "vue";
 import {isLoggedIn, login} from "@/services/auth";
 
 const ionRouter = useIonRouter();
@@ -110,10 +128,16 @@ const startGame = () => {
   console.log("Start game clicked");
 };
 
-const joinGame = () => {
-  // TODO` implement join game logic
-  console.log("Join game clicked");
+
+const showJoinOptions = ref<boolean>(false)
+const toggleJoinOptions = () => {
+  showJoinOptions.value = true;
 }
+
+const joinGame = () => {
+  // TODO implement join game logic
+  console.log("Join game clicked");
+};
 </script>
 
 <style scoped>
@@ -143,5 +167,15 @@ ion-icon {
   width: 100%;
   display: flex;
   align-items: center;
+}
+
+.input-otp-fill-solid.white-fill {
+  --background: white;
+  --border-color: var(--ion-color-dark-green);
+}
+
+.join-btn-container {
+  width: 100%;
+  text-align: end;
 }
 </style>
