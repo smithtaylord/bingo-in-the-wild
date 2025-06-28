@@ -1,53 +1,47 @@
 <template>
   <ion-page>
-    <MenuPageHeader title="Home" />
+    <MenuPageHeader title="Home"/>
     <ion-content class="ion-padding" fullscreen>
       <div
-        class="d-flex flex-column justify-content-center align-items-center h-100"
+          class="d-flex flex-column justify-content-center align-items-center h-100"
       >
         <div class="ion-padding-bottom ion-margin-bottom">
-          <ion-icon :icon="leafOutline" />
-          <ion-icon :icon="leafOutline" color="coral" />
-          <ion-icon :icon="roseOutline" />
+          <ion-icon :icon="leafOutline"/>
+          <ion-icon :icon="leafOutline" color="coral"/>
+          <ion-icon :icon="roseOutline"/>
           <ion-icon
-            :icon="leafOutline"
-            color="coral"
-            style="transform: scaleX(-1)"
+              :icon="leafOutline"
+              color="coral"
+              style="transform: scaleX(-1)"
           />
-          <ion-icon :icon="leafOutline" style="transform: scaleX(-1)" />
+          <ion-icon :icon="leafOutline" style="transform: scaleX(-1)"/>
         </div>
 
         <ion-text class="ion-padding-top ion-margin-top" color="dark-green">
           <h1 class="home-title">Bingo in the Wild</h1>
         </ion-text>
         <ion-button
-          color="dusty-green"
-          shape="round"
-          size="large"
-          @click="openThemeSelectorModal"
+            color="dusty-green"
+            shape="round"
+            size="large"
+            @click="openThemeSelectorModal"
         >
-          <ion-icon slot="start" :icon="trophy" size="large" />
+          <ion-icon slot="start" :icon="trophy" size="large"/>
           Choose a Theme
         </ion-button>
+        <LoginLogoutHomePage/>
       </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts" setup>
-import {
-  IonButton,
-  IonContent,
-  IonIcon,
-  IonPage,
-  IonText,
-  modalController,
-  useIonRouter,
-} from "@ionic/vue";
-import { leafOutline, roseOutline, trophy } from "ionicons/icons";
+import {IonButton, IonContent, IonIcon, IonPage, IonText, modalController, useIonRouter,} from "@ionic/vue";
+import {leafOutline, roseOutline, trophy} from "ionicons/icons";
 import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
-import { removeBoardFromLocalStorage } from "@/views/bingo-game/bingoGameService";
+import {removeBoardFromLocalStorage} from "@/views/bingo-game/bingoGameService";
+import LoginLogoutHomePage from "@/views/login-logout/LoginLogoutHomePage.vue";
 
 const ionRouter = useIonRouter();
 const openThemeSelectorModal = async () => {
@@ -57,12 +51,12 @@ const openThemeSelectorModal = async () => {
 
   await modal.present();
 
-  const { data, role } = await modal.onWillDismiss();
+  const {data, role} = await modal.onWillDismiss();
 
   if (role === "select") {
     // If there was a game stored in local storage, make sure it is removed before starting to play a new game
     removeBoardFromLocalStorage();
-    ionRouter.push({ name: "Bingo", params: { id: data } });
+    ionRouter.push({name: "Bingo", params: {id: data}});
   }
 };
 </script>
