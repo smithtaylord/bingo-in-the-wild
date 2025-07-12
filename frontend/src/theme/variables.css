@@ -119,5 +119,9 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 1px 1px 2px var(--ion-color-dark-green);
 }
 
+ion-tab-bar ion-tab-button.tab-selected::part(icon),
+ion-tab-bar ion-tab-button.tab-selected {
+    color: var(--ion-color-minty-green) !important;
+}
 
 

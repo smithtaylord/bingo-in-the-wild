@@ -7,7 +7,7 @@
             <ion-title>My Games</ion-title>
             <!--            TODO ONly show if logged in-->
             <!--            TODO Page Transistions-->
-<!--            TODO Make each page its own component, or a shared component-->
+            <!--            TODO Make each page its own component, or a shared component-->
           </ion-toolbar>
         </ion-header>
         <ion-content>
@@ -113,7 +113,6 @@
         </ion-content>
       </div>
     </ion-tab>
-<!--TODO Get the selected Tab buttons to show up as minty-green so you know which page you areon-->
     <ion-tab-bar slot="bottom" color="dusty-green">
       <ion-tab-button tab="my-games">
         <ion-icon :icon="personCircle"/>
