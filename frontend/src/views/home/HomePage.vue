@@ -103,6 +103,7 @@ import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 import {removeBoardFromLocalStorage} from "@/views/bingo-game/bingoGameService";
 import {computed, ref} from "vue";
 import {isLoggedIn, login} from "@/services/auth";
+import StartGameModal from "@/views/start-game-modal/StartGameModal.vue";
 
 const ionRouter = useIonRouter();
 const loggedIn = computed(() => isLoggedIn());
@@ -123,9 +124,24 @@ const openThemeSelectorModal = async () => {
   }
 };
 
-const startGame = () => {
+const startGame = async () => {
   //TODO implement start game logic
   console.log("Start game clicked");
+  const modal = await modalController.create({
+    component: StartGameModal,
+  });
+
+  await modal.present();
+
+  const {data, role} = await modal.onWillDismiss();
+  console.log(data, role)
+
+  // if (role === "select") {
+  //   // If there was a game stored in local storage, make sure it is removed before starting to play a new game
+  //   removeBoardFromLocalStorage();
+  //   ionRouter.push({name: "Bingo", params: {id: data}});
+  // }
+
 };
 
 
