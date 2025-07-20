@@ -22,7 +22,7 @@
         <ion-button slot="end" color="coral" @click="addItem">Enter</ion-button>
       </ion-item>
       <ion-item>
-        <ion-select label-placement="stacked">
+        <ion-select v-model="preSelectedThemeId" label-placement="stacked">
           <!--          TODO Can we change the colors of this?-->
           <div slot="label">Use an existing theme
             <ion-text color="medium">(Optional)</ion-text>
@@ -33,8 +33,6 @@
       </ion-item>
     </ion-list>
     <ion-list>
-      <!--      TODO Can these be smaller?-->
-      <!--      TODO something special if free space? top of list and star icon?-->
       <div class="ion-padding-horizontal d-flex align-items-baseline justify-content-between">
         <h4>Bingo Spaces</h4>
         <span>Count: 
@@ -113,7 +111,7 @@ import {
   modalController
 } from "@ionic/vue";
 import {ThemeSelectorAPI} from "@/views/bingo-theme-selector/themeSelectorAPI";
-import {onMounted, Ref, ref} from "vue";
+import {onMounted, Ref, ref, watch} from "vue";
 import {GameTheme} from "@/views/mock-game-themes/mockGameThemes";
 import {closeOutline, star, trash} from "ionicons/icons";
 // TODO Hande adds and edits
@@ -127,6 +125,7 @@ const select = (value: number) => {
 const currentItem = ref<string>("");
 const itemList = ref<string[]>([]);
 const freeSpace = ref<string | null>(null);
+const preSelectedThemeId = ref<number | null>(null);
 const addItem = () => {
   itemList.value.push(currentItem.value);
   currentItem.value = "";
@@ -166,6 +165,19 @@ const saveTheme = () => {
   // api.saveTheme(newTheme);
   // modalController.dismiss(newTheme, "save");
 };
+
+
+watch(() => preSelectedThemeId.value, () => {
+  console.log('Pre-selected theme changed:', preSelectedThemeId.value);
+  if (preSelectedThemeId.value) {
+    const selectedTheme: GameTheme | undefined = themes.value.find(theme => theme.id === preSelectedThemeId.value);
+    if (selectedTheme) {
+      itemList.value = [...selectedTheme.labels];
+      freeSpace.value = selectedTheme.freeSpaceLabel || null;
+    }
+  }
+})
+
 onMounted(() => {
   themes.value = api.getThemes();
 });

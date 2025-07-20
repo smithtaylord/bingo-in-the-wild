@@ -132,4 +132,8 @@ ion-tab-bar ion-tab-button.tab-selected {
     color: var(--ion-color-minty-green) !important;
 }
 
+ion-alert {
+    --ion-color-primary: var(--ion-color-dark-green);
+}
+
 
