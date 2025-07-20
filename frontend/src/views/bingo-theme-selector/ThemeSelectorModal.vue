@@ -13,14 +13,14 @@
   <ion-content class="ion-padding" color="white">
     <ion-list lines="inset">
       <ion-item
-        v-for="theme in themes"
-        :key="theme.id"
-        button
-        color="white"
-        detail="false"
+          v-for="theme in themes"
+          :key="theme.id"
+          :detail="false"
+          button
+          color="white"
       >
         <ion-label color="dark-green" @click="select(theme.id)"
-          >{{ theme.name }}
+        >{{ theme.name }}
         </ion-label>
       </ion-item>
     </ion-list>
@@ -41,9 +41,9 @@ import {
   IonToolbar,
   modalController,
 } from "@ionic/vue";
-import { ThemeSelectorAPI } from "@/views/bingo-theme-selector/themeSelectorAPI";
-import { onMounted, Ref, ref } from "vue";
-import { GameTheme } from "@/views/mock-game-themes/mockGameThemes";
+import {ThemeSelectorAPI} from "@/views/bingo-theme-selector/themeSelectorAPI";
+import {onMounted, Ref, ref} from "vue";
+import {GameTheme} from "@/views/mock-game-themes/mockGameThemes";
 
 const api = new ThemeSelectorAPI();
 const cancel = () => modalController.dismiss(null, "cancel");

@@ -4,6 +4,9 @@
       <div id="my-games-page" class="example-content">
         <ion-header>
           <ion-toolbar color="dusty-green">
+            <ion-buttons slot="start">
+              <ion-button color="light" @click="cancel">Cancel</ion-button>
+            </ion-buttons>
             <ion-title>My Games</ion-title>
             <!--            TODO ONly show if logged in-->
             <!--            TODO Page Transistions-->
@@ -29,6 +32,7 @@
                 class="new-theme-btn"
                 color="coral"
                 expand="block"
+                @click="createNewTheme"
             >
               <ion-icon slot="start" :icon="addOutline" size="large"/>
               Create A New Theme
@@ -137,6 +141,7 @@
 <script lang="ts" setup>
 import {
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -173,6 +178,9 @@ function getRandomThemes(source: GameTheme[], count: number) {
   return source.slice().sort(() => Math.random() - 0.5).slice(0, count);
 }
 
+const createNewTheme = () => {
+  modalController.dismiss(null, "create-new-theme");
+}
 onMounted(() => {
   themes.value = api.getThemes();
   myGamesThemes.value = getRandomThemes(themes.value, 3);

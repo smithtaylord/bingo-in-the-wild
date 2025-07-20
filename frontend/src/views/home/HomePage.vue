@@ -104,6 +104,7 @@ import {removeBoardFromLocalStorage} from "@/views/bingo-game/bingoGameService";
 import {computed, ref} from "vue";
 import {isLoggedIn, login} from "@/services/auth";
 import StartGameModal from "@/views/start-game-modal/StartGameModal.vue";
+import AddEditNewThemeModal from "@/views/add-edit-new-theme/AddEditNewThemeModal.vue";
 
 const ionRouter = useIonRouter();
 const loggedIn = computed(() => isLoggedIn());
@@ -141,6 +142,15 @@ const startGame = async () => {
   //   removeBoardFromLocalStorage();
   //   ionRouter.push({name: "Bingo", params: {id: data}});
   // }
+
+  if (role == "create-new-theme") {
+    const addEditModal = await modalController.create({
+      component: AddEditNewThemeModal,
+    });
+
+    await addEditModal.present();
+  }
+
 
 };
 
