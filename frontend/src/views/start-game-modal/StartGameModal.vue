@@ -17,25 +17,25 @@
           <div class="my-games-content">
             <ion-list lines="inset">
               <ion-item
-                  v-for="theme in myGamesThemes"
-                  :key="theme.id"
+                  v-for="board in myBoards"
+                  :key="board._id"
                   :detail="false"
                   button
                   color="white"
               >
-                <ion-label color="dark-green" @click="select(theme.id)">
-                  {{ theme.name }}
+                <ion-label color="dark-green" @click="select(board._id)">
+                  {{ board.name }}
                 </ion-label>
               </ion-item>
             </ion-list>
             <ion-button
-                class="new-theme-btn"
+                class="new-board-btn"
                 color="coral"
                 expand="block"
-                @click="createNewTheme"
+                @click="createNewBoard"
             >
               <ion-icon slot="start" :icon="addOutline" size="large"/>
-              Create A New Theme
+              Create A New Board
             </ion-button>
           </div>
 
@@ -47,20 +47,20 @@
       <div id="sports-page" class="example-content">
         <ion-header>
           <ion-toolbar color="dusty-green">
-            <ion-title>Sports Themed</ion-title>
+            <ion-title>Sports Boards</ion-title>
           </ion-toolbar>
         </ion-header>
         <ion-content>
           <ion-list lines="inset">
             <ion-item
-                v-for="theme in sportsThemes"
-                :key="theme.id"
+                v-for="board in sportsBoards"
+                :key="board._id"
                 :detail="false"
                 button
                 color="white"
             >
-              <ion-label color="dark-green" @click="select(theme.id)">
-                {{ theme.name }}
+              <ion-label color="dark-green" @click="select(board._id)">
+                {{ board.name }}
               </ion-label>
             </ion-item>
           </ion-list>
@@ -72,20 +72,20 @@
       <div id="social-page" class="example-content">
         <ion-header>
           <ion-toolbar color="dusty-green">
-            <ion-title>Social Themed</ion-title>
+            <ion-title>Social Boards</ion-title>
           </ion-toolbar>
         </ion-header>
         <ion-content>
           <ion-list lines="inset">
             <ion-item
-                v-for="theme in socialThemes"
-                :key="theme.id"
+                v-for="board in socialBoards"
+                :key="board._id"
                 :detail="false"
                 button
                 color="white"
             >
-              <ion-label color="dark-green" @click="select(theme.id)">
-                {{ theme.name }}
+              <ion-label color="dark-green" @click="select(board._id)">
+                {{ board.name }}
               </ion-label>
             </ion-item>
           </ion-list>
@@ -97,20 +97,20 @@
       <div id="location-page" class="example-content">
         <ion-header>
           <ion-toolbar color="dusty-green">
-            <ion-title>Location Based Games</ion-title>
+            <ion-title>Location Based Boards</ion-title>
           </ion-toolbar>
         </ion-header>
         <ion-content>
           <ion-list lines="inset">
             <ion-item
-                v-for="theme in locationThemes"
-                :key="theme.id"
+                v-for="board in locationBoards"
+                :key="board._id"
                 :detail="false"
                 button
                 color="white"
             >
-              <ion-label color="dark-green" @click="select(theme.id)">
-                {{ theme.name }}
+              <ion-label color="dark-green" @click="select(board._id)">
+                {{ board.name }}
               </ion-label>
             </ion-item>
           </ion-list>
@@ -157,36 +157,36 @@ import {
   modalController
 } from "@ionic/vue";
 import {addOutline, americanFootball, beer, compass, personCircle} from "ionicons/icons";
-import {ThemeSelectorAPI} from "@/views/bingo-theme-selector/themeSelectorAPI";
 import {onMounted, ref} from "vue";
-import {GameTheme} from "@/views/mock-game-themes/mockGameThemes";
+import {
+  BingoBoard,
+  BingoBoardAPI,
+  LOCATION_CATEGORY,
+  SOCIAL_CATEGORY,
+  SPORTS_CATEGORY
+} from "@/views/start-game-modal/BingoBoardAPI";
 
 
-const api = new ThemeSelectorAPI();
+const api = new BingoBoardAPI();
 const cancel = () => modalController.dismiss(null, "cancel");
-const select = (value: number) => {
-  modalController.dismiss(value, "select");
+const select = (id: string) => {
+  modalController.dismiss(id, "select");
 };
 
-const themes = ref<GameTheme[]>([]);
-const myGamesThemes = ref<GameTheme[]>([]);
-const sportsThemes = ref<GameTheme[]>([]);
-const socialThemes = ref<GameTheme[]>([]);
-const locationThemes = ref<GameTheme[]>([]);
+const myBoards = ref<BingoBoard[]>([]);
+const sportsBoards = ref<BingoBoard[]>([]);
+const socialBoards = ref<BingoBoard[]>([]);
+const locationBoards = ref<BingoBoard[]>([]);
 
-function getRandomThemes(source: GameTheme[], count: number) {
-  return source.slice().sort(() => Math.random() - 0.5).slice(0, count);
+const createNewBoard = () => {
+  modalController.dismiss(null, "create-new-board");
 }
-
-const createNewTheme = () => {
-  modalController.dismiss(null, "create-new-theme");
-}
-onMounted(() => {
-  themes.value = api.getThemes();
-  myGamesThemes.value = getRandomThemes(themes.value, 3);
-  sportsThemes.value = getRandomThemes(themes.value, 3);
-  socialThemes.value = getRandomThemes(themes.value, 3);
-  locationThemes.value = getRandomThemes(themes.value, 3);
+onMounted(async () => {
+  const allBoards = await api.getBingoBoards()
+  myBoards.value = allBoards.filter(board => board.category == null)
+  sportsBoards.value = allBoards.filter(board => board.category == SPORTS_CATEGORY)
+  socialBoards.value = allBoards.filter(board => board.category == SOCIAL_CATEGORY)
+  locationBoards.value = allBoards.filter(board => board.category == LOCATION_CATEGORY)
 });
 </script>
 
@@ -202,7 +202,7 @@ onMounted(() => {
   padding-bottom: 56px;
 }
 
-.new-theme-btn {
+.new-board-btn {
   margin-top: auto;
 }
 

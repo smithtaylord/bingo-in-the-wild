@@ -60,7 +60,7 @@ async function syncUserWithBackend() {
     const currentUser = await auth0Client.getUser();
 
     console.log('Syncing user with backend using token:', token);
-    const response = await fetch('http://localhost:3000/api/user/login', {
+    const response = await fetch('api/user/login', {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${token}`,

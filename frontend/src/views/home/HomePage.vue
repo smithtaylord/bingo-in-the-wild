@@ -32,17 +32,17 @@
           <ion-icon slot="start" :icon="trophy" size="large"/>
           Start a New Game</span>
         </ion-button>
-        <ion-button v-else
-                    class="home-btn"
-                    color="dusty-green"
-                    shape="round" size="large"
+        <!--        <ion-button v-else-->
+        <!--                    class="home-btn"-->
+        <!--                    color="dusty-green"-->
+        <!--                    shape="round" size="large"-->
 
-                    @click="openThemeSelectorModal"
-        >          <span class="align-left">
+        <!--                    @click="openThemeSelectorModal"-->
+        <!--        >          <span class="align-left">-->
 
-          <ion-icon slot="start" :icon="trophy" size="large"/>
-          Choose a Theme</span>
-        </ion-button>
+        <!--          <ion-icon slot="start" :icon="trophy" size="large"/>-->
+        <!--          Choose a Theme</span>-->
+        <!--        </ion-button>-->
 
 
         <div v-if="showJoinOptions">
@@ -98,32 +98,30 @@
 <script lang="ts" setup>
 import {IonButton, IonContent, IonIcon, IonInputOtp, IonPage, IonText, modalController, useIonRouter} from "@ionic/vue";
 import {addOutline, leafOutline, logInOutline, roseOutline, trophy} from "ionicons/icons";
-import ThemeSelectorModal from "@/views/bingo-theme-selector/ThemeSelectorModal.vue";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
-import {removeBoardFromLocalStorage} from "@/views/bingo-game/bingoGameService";
 import {computed, ref} from "vue";
 import {isLoggedIn, login} from "@/services/auth";
 import StartGameModal from "@/views/start-game-modal/StartGameModal.vue";
-import AddEditNewThemeModal from "@/views/add-edit-new-theme/AddEditNewThemeModal.vue";
+import AddEditNewBoardModal from "@/views/start-game-modal/AddEditNewBoardModal.vue";
 
 const ionRouter = useIonRouter();
 const loggedIn = computed(() => isLoggedIn());
 
-const openThemeSelectorModal = async () => {
-  const modal = await modalController.create({
-    component: ThemeSelectorModal,
-  });
-
-  await modal.present();
-
-  const {data, role} = await modal.onWillDismiss();
-
-  if (role === "select") {
-    // If there was a game stored in local storage, make sure it is removed before starting to play a new game
-    removeBoardFromLocalStorage();
-    ionRouter.push({name: "Bingo", params: {id: data}});
-  }
-};
+// const openThemeSelectorModal = async () => {
+//   const modal = await modalController.create({
+//     component: ThemeSelectorModal,
+//   });
+//
+//   await modal.present();
+//
+//   const {data, role} = await modal.onWillDismiss();
+//
+//   if (role === "select") {
+//     // If there was a game stored in local storage, make sure it is removed before starting to play a new game
+//     removeBoardFromLocalStorage();
+//     ionRouter.push({name: "Bingo", params: {id: data}});
+//   }
+// };
 
 const startGame = async () => {
   //TODO implement start game logic
@@ -143,9 +141,9 @@ const startGame = async () => {
   //   ionRouter.push({name: "Bingo", params: {id: data}});
   // }
 
-  if (role == "create-new-theme") {
+  if (role == "create-new-board") {
     const addEditModal = await modalController.create({
-      component: AddEditNewThemeModal,
+      component: AddEditNewBoardModal,
     });
 
     await addEditModal.present();

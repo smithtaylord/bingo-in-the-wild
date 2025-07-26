@@ -29,7 +29,7 @@ app.get('/protected', checkJwt, (req, res) => {
 
 // Register Controllers
 app.use('/api/user', userController);
-app.use('/api/bingo-boards', bingoBoardController);
+app.use('/api/bingo-board', bingoBoardController);
 
 connectToDB().then(() => {
     app.listen(PORT, () => {

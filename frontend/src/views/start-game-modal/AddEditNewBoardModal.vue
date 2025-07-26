@@ -22,13 +22,13 @@
         <ion-button slot="end" color="coral" @click="addItem">Enter</ion-button>
       </ion-item>
       <ion-item>
-        <ion-select v-model="preSelectedThemeId" label-placement="stacked">
+        <ion-select v-model="preSelectedBoardId" label-placement="stacked">
           <!--          TODO Can we change the colors of this?-->
-          <div slot="label">Use an existing theme
+          <div slot="label">Use an existing board
             <ion-text color="medium">(Optional)</ion-text>
           </div>
           <!--          TODO once this is live, this should group into categories-->
-          <ion-select-option v-for="theme of themes" :value="theme.id">{{ theme.name }}</ion-select-option>
+          <ion-select-option v-for="board of boards" :value="board._id">{{ board.name }}</ion-select-option>
         </ion-select>
       </ion-item>
     </ion-list>
@@ -110,13 +110,12 @@ import {
   IonToolbar,
   modalController
 } from "@ionic/vue";
-import {ThemeSelectorAPI} from "@/views/bingo-theme-selector/themeSelectorAPI";
 import {onMounted, Ref, ref, watch} from "vue";
-import {GameTheme} from "@/views/mock-game-themes/mockGameThemes";
 import {closeOutline, star, trash} from "ionicons/icons";
+import {BingoBoard, BingoBoardAPI} from "@/views/start-game-modal/BingoBoardAPI";
 // TODO Hande adds and edits
 // TODO Handle Validation - Must have a name, must have at least 24 items (if one is selected as the free space then you must have 25)
-const api = new ThemeSelectorAPI();
+const api = new BingoBoardAPI();
 const cancel = () => modalController.dismiss(null, "cancel");
 // TODO make one ref Object
 const select = (value: number) => {
@@ -125,7 +124,7 @@ const select = (value: number) => {
 const currentItem = ref<string>("");
 const itemList = ref<string[]>([]);
 const freeSpace = ref<string | null>(null);
-const preSelectedThemeId = ref<number | null>(null);
+const preSelectedBoardId = ref<string | null>(null);
 const addItem = () => {
   itemList.value.push(currentItem.value);
   currentItem.value = "";
@@ -151,7 +150,7 @@ const removeFreeSpace = () => {
     freeSpace.value = null;
   }
 }
-const themes: Ref<GameTheme[]> = ref([]);
+const boards: Ref<BingoBoard[]> = ref([]);
 const saveTheme = () => {
   // TODO Implement save logic
   console.log('[SAVE THEME]')
@@ -167,19 +166,18 @@ const saveTheme = () => {
 };
 
 
-watch(() => preSelectedThemeId.value, () => {
-  console.log('Pre-selected theme changed:', preSelectedThemeId.value);
-  if (preSelectedThemeId.value) {
-    const selectedTheme: GameTheme | undefined = themes.value.find(theme => theme.id === preSelectedThemeId.value);
-    if (selectedTheme) {
-      itemList.value = [...selectedTheme.labels];
-      freeSpace.value = selectedTheme.freeSpaceLabel || null;
+watch(() => preSelectedBoardId.value, () => {
+  if (preSelectedBoardId.value) {
+    const selectedBoard: BingoBoard | undefined = boards.value.find(board => board._id === preSelectedBoardId.value);
+    if (selectedBoard) {
+      itemList.value = [...selectedBoard.items];
+      freeSpace.value = selectedBoard.freeSpace || null;
     }
   }
 })
 
-onMounted(() => {
-  themes.value = api.getThemes();
+onMounted(async () => {
+  boards.value = await api.getBingoBoards();
 });
 
 </script>
