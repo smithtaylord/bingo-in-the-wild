@@ -1,4 +1,4 @@
-import {UserModel} from './UserModel';
+import {UserModel} from './user-model';
 
 export class UserService {
     static async upsert(userData: { id: string; email: string; name?: string }) {

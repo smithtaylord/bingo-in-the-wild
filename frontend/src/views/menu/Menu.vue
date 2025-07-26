@@ -7,7 +7,7 @@
     </ion-header>
     <ion-content color="white">
       <ion-list>
-        <ion-menu-toggle auto-hide="true">
+        <ion-menu-toggle :auto-hide="true">
           <ion-item
               v-for="item in menuItems"
               :router-link="item.path"

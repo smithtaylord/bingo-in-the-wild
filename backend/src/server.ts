@@ -1,9 +1,10 @@
 import express from 'express';
-import { connectToDB } from './db';
+import {connectToDB} from './db';
 import dotenv from 'dotenv';
 import checkJwt from './middleware/auth';
 import cors from 'cors';
-import userController from './user/UserController';
+import userController from './user/user-controller';
+import bingoBoardController from './board/bingo-board-contoller';
 
 
 dotenv.config();
@@ -27,7 +28,8 @@ app.get('/protected', checkJwt, (req, res) => {
 });
 
 // Register Controllers
-app.use('/api/user', userController); 
+app.use('/api/user', userController);
+app.use('/api/bingo-boards', bingoBoardController);
 
 connectToDB().then(() => {
     app.listen(PORT, () => {

@@ -1,6 +1,6 @@
 import {Request, Response, Router} from 'express';
 import checkJwt from '../middleware/auth';
-import {UserService} from './UserService';
+import {UserService} from './user-service';
 
 const router = Router();
 
