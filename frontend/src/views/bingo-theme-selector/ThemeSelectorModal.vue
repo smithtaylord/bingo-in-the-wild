@@ -17,7 +17,7 @@
         :key="theme.id"
         button
         color="white"
-        detail="false"
+        :detail="false"
       >
         <ion-label color="dark-green" @click="select(theme.id)"
           >{{ theme.name }}
