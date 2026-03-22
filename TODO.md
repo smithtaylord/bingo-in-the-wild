@@ -25,24 +25,27 @@
 ## Phase 2: Core Feature Completion
 
 ### Board Creation
-- [ ] **Backend:** Add `POST /api/bingo-board` endpoint with auth middleware
-- [ ] **Backend:** Add `PUT /api/bingo-board/:id` endpoint (owner only)
-- [ ] **Backend:** Add `DELETE /api/bingo-board/:id` endpoint (owner only)
-- [ ] **Backend:** Add `GET /api/bingo-board/user/:userId` for user's boards
-- [ ] **Frontend:** Implement `saveTheme()` in `AddEditNewBoardModal.vue`
-- [ ] **Frontend:** Add validation (minimum 24 items)
-- [ ] **Frontend:** Add edit existing board functionality
+- [x] **Backend:** Add `POST /api/bingo-board` endpoint with auth middleware
+- [x] **Backend:** Add `PUT /api/bingo-board/:id` endpoint (owner only)
+- [x] **Backend:** Add `DELETE /api/bingo-board/:id` endpoint (owner only)
+- [x] **Backend:** Add `GET /api/bingo-board/user/:userId` for user's boards
+- [x] **Frontend:** Implement `saveTheme()` in `AddEditNewBoardModal.vue`
+- [x] **Frontend:** Add validation (minimum 24 items)
+- [x] **Frontend:** Add edit existing board functionality
 
-### Route Protection
+### Board Management UX Improvements
+- [x] Fix modal mode logic (separate editBoardId from sourceBoardId)
+- [x] Update "My Games" with swipe actions (Edit/Delete)
+- [x] Add delete confirmation dialog
+- [x] Update template copy to show "(Copy)" suffix on name
+- [x] Pass editBoardId prop to AddEditNewBoardModal
+
+### Route Protection (Optional)
 - [ ] Add `meta.requiresAuth` to protected routes in `router/index.ts`
 - [ ] Implement `router.beforeEach` navigation guard
-- [ ] Apply `checkJwt` middleware to `/api/bingo-board/*` routes (except GET all)
 - [ ] Test protected routes redirect properly
 
-### State Management Setup
-- [ ] Install Pinia
-- [ ] Create `useGameStore` for board state and game session
-- [ ] Create `useUserStore` for user profile and owned boards
+**Note:** State management (Pinia) is not needed for single-player mode. It would only be beneficial for Phase 3 multiplayer when WebSocket state synchronization becomes necessary.
 
 ---
 
@@ -106,11 +109,11 @@
 
 **CSS Variables:**
 - [ ] Review existing `theme/variables.css` and identify variables to override
-- [ ] Create `theme/dark.css` with dark mode overrides
-- [ ] Add CSS custom properties for theme transitions
+- [ ] Add CSS variables for theme colors
+- [ ] Implement dark mode using CSS class toggle
 
 **State Management:**
-- [ ] Add `theme` preference to Pinia store or localStorage
+- [ ] Add `theme` preference to localStorage
 - [ ] Default: 'system' (follows OS preference)
 - [ ] Options: 'system' | 'light' | 'dark' | 'default'
 
@@ -187,9 +190,9 @@ Server → Client:
 | Phase | Recommended Model | Reasoning |
 |-------|-------------------|-----------|
 | Phase 1 (Fixes) | Coding model | Small fixes, no architecture decisions |
-| Phase 2 (Core) | Coding model | CRUD endpoints + state management |
+| Phase 2 (Core) | Coding model | CRUD endpoints - straightforward |
 | Phase 3.1 (Sharing) | Planning → Coding | Need design decisions first |
-| Phase 3.2 (Themes) | Coding model | Straightforward CSS + state |
+| Phase 3.2 (Themes) | Coding model | Straightforward CSS |
 | Phase 3.3 (WebSockets) | Planning → Coding | Architecture decisions critical |
 | Phase 4 (Polish) | Coding model | Incremental improvements |
 
@@ -199,7 +202,8 @@ Server → Client:
 
 ```
 Phase 1 Core Game Fix → Phase 2 Board CRUD (needs working boards)
-Phase 2 State Management → Phase 3.1 Game Sessions
 Phase 3.1 Game Sessions → Phase 3.3 WebSockets
 Phase 3.2 Themes → Independent (can parallelize)
 ```
+
+**Note:** Route Protection is optional - auth works without it, it's just for better UX.

@@ -125,7 +125,6 @@ const loggedIn = computed(() => isLoggedIn());
 // };
 
 const startGame = async () => {
-  //TODO implement start game logic
   console.log("Start game clicked");
   const modal = await modalController.create({
     component: StartGameModal,
@@ -134,11 +133,11 @@ const startGame = async () => {
   await modal.present();
 
   const {data, role} = await modal.onWillDismiss();
-  console.log(data, role)
 
   if (role === "select") {
     removeBoardFromLocalStorage();
     ionRouter.push({name: "Bingo", params: {id: data}});
+    return;
   }
 
   if (role === "create-new-board") {
@@ -147,9 +146,12 @@ const startGame = async () => {
     });
 
     await addEditModal.present();
+
+    const {role: editRole} = await addEditModal.onWillDismiss();
+    if (editRole === "saved") {
+      await startGame();
+    }
   }
-
-
 };
 
 
