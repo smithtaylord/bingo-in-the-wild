@@ -1,5 +1,5 @@
 import express, {Request, Response, Router} from 'express';
-import {getAllBingoBoards} from "./bingo-board-service";
+import {getAllBingoBoards, getBingoBoardById} from "./bingo-board-service";
 
 const router = Router();
 
@@ -10,6 +10,19 @@ router.get('/', async (req: Request, res: Response) => {
         res.json(boards);
     } catch (error) {
         res.status(500).json({message: 'Error retrieving bingo boards', error});
+    }
+});
+
+router.get('/:id', async (req: Request, res: Response) => {
+    try {
+        const board = await getBingoBoardById(req.params.id);
+        if (!board) {
+            res.status(404).json({message: 'Board not found'});
+            return;
+        }
+        res.json(board);
+    } catch (error) {
+        res.status(500).json({message: 'Error retrieving bingo board', error});
     }
 });
 

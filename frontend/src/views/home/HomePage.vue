@@ -101,6 +101,7 @@ import {addOutline, leafOutline, logInOutline, roseOutline, trophy} from "ionico
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 import {computed, ref} from "vue";
 import {isLoggedIn, login} from "@/services/auth";
+import {removeBoardFromLocalStorage} from "@/views/bingo-game/bingoGameService";
 import StartGameModal from "@/views/start-game-modal/StartGameModal.vue";
 import AddEditNewBoardModal from "@/views/start-game-modal/AddEditNewBoardModal.vue";
 
@@ -135,13 +136,12 @@ const startGame = async () => {
   const {data, role} = await modal.onWillDismiss();
   console.log(data, role)
 
-  // if (role === "select") {
-  //   // If there was a game stored in local storage, make sure it is removed before starting to play a new game
-  //   removeBoardFromLocalStorage();
-  //   ionRouter.push({name: "Bingo", params: {id: data}});
-  // }
+  if (role === "select") {
+    removeBoardFromLocalStorage();
+    ionRouter.push({name: "Bingo", params: {id: data}});
+  }
 
-  if (role == "create-new-board") {
+  if (role === "create-new-board") {
     const addEditModal = await modalController.create({
       component: AddEditNewBoardModal,
     });

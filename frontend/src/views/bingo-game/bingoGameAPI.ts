@@ -1,36 +1,76 @@
-// import {shuffle} from "@/views/common/functions/shuffle";
-// import {BingoCell} from "@/views/bingo-game/bingoGameService";
-//
+import {BingoCell} from "@/views/bingo-game/bingoGameService";
+import {BingoBoard} from "@/views/start-game-modal/BingoBoardAPI";
+
+function shuffle<T>(array: T[]): T[] {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+}
+
 export class BingoGameAPI {
-//     getThemeName(id: number){
-//         return MOCK_GAME_THEMES.find(theme => theme.id == id)?.name;
-//     }
-//    
-//     createGameBoard(id: number): BingoCell[][] | null{
-//         const theme: GameTheme | undefined = MOCK_GAME_THEMES.find(theme => theme.id == id)
-//         if(!theme){
-//             return null;
-//         }
-//         const shuffledLabels: string[] = shuffle(theme?.labels).slice(0,24)
-//
-//         let board: BingoCell[][] = [];
-//         let labelIndex = 0;
-//
-//         for (let row = 0; row < 5; row++) {
-//             const boardRow: BingoCell[] = [];
-//             for (let col = 0; col < 5; col++) {
-//                 if (row === 2 && col === 2) {
-//                     // center free space
-//                     boardRow.push({ label: theme.freeSpaceLabel ?? "Free", isMarked: true, isFreeSpace: true }); 
-//                 } else {
-//                     boardRow.push({ label: shuffledLabels[labelIndex], isMarked: false });
-//                     labelIndex++;
-//                 }
-//             }
-//             board.push(boardRow);
-//         }
-//        
-//         return board;
-//        
-//     }
+    private boards: Map<string, BingoBoard> = new Map();
+
+    async loadBoard(id: string): Promise<BingoBoard | null> {
+        if (this.boards.has(id)) {
+            return this.boards.get(id) || null;
+        }
+
+        try {
+            const response = await fetch(`api/bingo-board/${id}`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return null;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const board: BingoBoard = await response.json();
+            this.boards.set(id, board);
+            return board;
+        } catch (error) {
+            console.error('Error fetching board:', error);
+            return null;
+        }
+    }
+
+    getThemeName(board: BingoBoard | null): string | undefined {
+        return board?.name;
+    }
+
+    async createGameBoard(id: string): Promise<BingoCell[][] | null> {
+        const board = await this.loadBoard(id);
+        if (!board) {
+            return null;
+        }
+
+        if (!board.items || board.items.length < 24) {
+            console.error('Board does not have enough items (need at least 24)');
+            return null;
+        }
+
+        const shuffledLabels: string[] = shuffle(board.items).slice(0, 24);
+        const gameBoard: BingoCell[][] = [];
+        let labelIndex = 0;
+
+        for (let row = 0; row < 5; row++) {
+            const boardRow: BingoCell[] = [];
+            for (let col = 0; col < 5; col++) {
+                if (row === 2 && col === 2) {
+                    boardRow.push({
+                        label: board.freeSpace || "Free",
+                        isMarked: true,
+                        isFreeSpace: true
+                    });
+                } else {
+                    boardRow.push({label: shuffledLabels[labelIndex], isMarked: false});
+                    labelIndex++;
+                }
+            }
+            gameBoard.push(boardRow);
+        }
+
+        return gameBoard;
+    }
 }

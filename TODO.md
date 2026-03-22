@@ -14,10 +14,11 @@
 - [x] Add loading state while Auth0 initializes (prevent UI flash)
 
 ### Core Game Fix (Critical)
-- [ ] **Implement `BingoGameAPI.createGameBoard()`** - connect to backend data
-- [ ] **Implement `BingoGameAPI.getThemeName()`** - fetch from board API
-- [ ] Wire up `StartGameModal` to pass selected board ID to `BingoPage`
-- [ ] Test end-to-end: select board → play → win
+- [x] **Implement `BingoGameAPI.createGameBoard()`** - connect to backend data
+- [x] **Implement `BingoGameAPI.getThemeName()`** - fetch from board API
+- [x] Wire up `StartGameModal` to pass selected board ID to `BingoPage`
+- [x] Fix navigation on board selection (was commented out in HomePage.vue)
+- [x] Test end-to-end: select board → play → win
 
 ---
 

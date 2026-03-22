@@ -130,7 +130,8 @@ const api = new BingoGameAPI();
 const jsConfetti = new JSConfetti();
 
 let pressTimer: number | null = null;
-let currentPopover: HTMLIonPopoverElement | null = null;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let _currentPopover: HTMLIonPopoverElement | null = null;
 
 const toggleCell = (rowIndex: number, colIndex: number) => {
   const cell = board.value[rowIndex][colIndex];
@@ -151,7 +152,7 @@ const startPress = (event: Event, label: string) => {
       arrow: false,
       side: "top",
     });
-    currentPopover = popover;
+    _currentPopover = popover;
     await popover.present();
   }, 500);
 };
@@ -173,8 +174,8 @@ const goHome = () => {
 };
 
 const createBoard = async () => {
-  const gameBoard: BingoCell[][] | null = api.createGameBoard(
-    parseInt(props.id),
+  const gameBoard: BingoCell[][] | null = await api.createGameBoard(
+    props.id,
   );
 
   if (!gameBoard) {
@@ -182,6 +183,8 @@ const createBoard = async () => {
     return;
   }
 
+  const loadedBoard = await api.loadBoard(props.id);
+  themeName.value = api.getThemeName(loadedBoard || null);
   board.value = gameBoard;
 };
 
@@ -252,8 +255,6 @@ watch(
 );
 
 onIonViewWillEnter(async () => {
-  themeName.value = api.getThemeName(parseInt(props.id));
-
   const savedGameBoard = retrieveBoardFromLocalStorage();
   if (savedGameBoard) {
     board.value = savedGameBoard;
