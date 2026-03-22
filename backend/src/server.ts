@@ -4,19 +4,20 @@ import dotenv from 'dotenv';
 import checkJwt from './middleware/auth';
 import cors from 'cors';
 import userController from './user/user-controller';
-import bingoBoardController from './board/bingo-board-contoller';
+import bingoBoardController from './board/bingo-board-controller';
 
 
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:8100';
 
 app.use(express.json());
 
-// ✅ Allow CORS from frontend
+// Allow CORS from frontend
 app.use(cors({
-    origin: 'http://localhost:8100', // allow frontend dev server
+    origin: CORS_ORIGIN,
     credentials: true,
 }));
 app.get('/', (req, res) => {
