@@ -40,6 +40,21 @@
 - [x] Update template copy to show "(Copy)" suffix on name
 - [x] Pass editBoardId prop to AddEditNewBoardModal
 
+### Guest Play Mode
+- [x] Show "Start a New Game" button for non-logged-in users
+- [x] Gray out "My Games" tab for guests with informative message
+- [x] Default to "Sports" tab for guests
+- [x] Add login prompt in "My Games" message with "Log In" button
+- [x] Update login hint text to clarify play doesn't require login
+
+### Bulk Add Feature
+- [x] Add single/bulk toggle to AddEditNewBoardModal
+- [x] Add textarea for bulk item input
+- [x] Parse comma AND newline separated items
+- [x] Filter duplicates during parse (case-insensitive)
+- [x] Show count of items added
+- [x] Clear textarea after successful add
+
 ### Route Protection (Optional)
 - [ ] Add `meta.requiresAuth` to protected routes in `router/index.ts`
 - [ ] Implement `router.beforeEach` navigation guard
@@ -164,7 +179,7 @@ Server → Client:
 
 ### Error Handling
 - [ ] Add global error boundary in Vue
-- [ ] Add toast notifications for API failures
+- [x] Add toast notifications for API failures
 - [ ] Add retry logic for failed API calls
 
 ### UX Improvements
@@ -174,7 +189,7 @@ Server → Client:
 
 ### Code Quality
 - [ ] Extract `BingoPage.vue` logic into `useBingoGame.ts` composable
-- [ ] Create `useToast.ts` utility for Ionic toasts
+- [x] Create `useToast.ts` utility for Ionic toasts
 - [ ] Add consistent error handling pattern across components
 
 ### Production

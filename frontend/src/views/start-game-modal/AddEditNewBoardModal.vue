@@ -27,16 +27,56 @@
             :disabled="isEditing"
         ></ion-input>
       </ion-item>
+
       <ion-item>
-        <ion-input
-            v-model="currentItem"
-            label="Add Bingo Items (minimum 24)"
-            label-placement="stacked"
-            placeholder="Enter item"
-            @keyup.enter="addItem"
-        ></ion-input>
-        <ion-button slot="end" color="coral" @click="addItem">Enter</ion-button>
+        <div class="input-mode-toggle">
+          <ion-button
+              size="small"
+              :color="!isBulkMode ? 'coral' : 'medium'"
+              @click="isBulkMode = false"
+          >
+            Single
+          </ion-button>
+          <ion-button
+              size="small"
+              :color="isBulkMode ? 'coral' : 'medium'"
+              @click="isBulkMode = true"
+          >
+            Bulk Add
+          </ion-button>
+        </div>
       </ion-item>
+
+      <template v-if="!isBulkMode">
+        <ion-item>
+          <ion-input
+              v-model="currentItem"
+              label="Add Bingo Items (minimum 24)"
+              label-placement="stacked"
+              placeholder="Enter item"
+              @keyup.enter="addItem"
+          ></ion-input>
+          <ion-button slot="end" color="coral" @click="addItem">Enter</ion-button>
+        </ion-item>
+      </template>
+
+      <template v-else>
+        <ion-item>
+          <ion-textarea
+              v-model="bulkInput"
+              label="Paste items (comma or newline separated)"
+              label-placement="stacked"
+              placeholder="Enter items separated by commas or new lines, for example:&#10;Touchdown, Fumble, Interception, Sack"
+              :rows="4"
+          ></ion-textarea>
+        </ion-item>
+        <ion-item>
+          <ion-button color="coral" @click="bulkAddItems">
+            Add All Items
+          </ion-button>
+        </ion-item>
+      </template>
+
       <ion-item v-if="!isEditing">
         <ion-select
             v-model="sourceBoardId"
@@ -48,7 +88,7 @@
             <ion-text color="medium">(Optional)</ion-text>
           </div>
           <ion-select-option :value="null">-- Select a board --</ion-select-option>
-          <ion-select-option v-for="board of availableBoards" :key="board._id" :value="board._id">
+          <ion-select-option v-for="board in availableBoards" :key="board._id" :value="board._id">
             {{ board.name }}
           </ion-select-option>
         </ion-select>
@@ -100,9 +140,7 @@
       </ion-item-sliding>
     </ion-list>
 
-    <div v-if="errorMessage" class="ion-padding">
-      <ion-text color="danger">{{ errorMessage }}</ion-text>
-    </div>
+
   </ion-content>
 </template>
 
@@ -123,14 +161,15 @@ import {
     IonSelect,
     IonSelectOption,
     IonText,
+    IonTextarea,
     IonTitle,
     IonToolbar,
     modalController,
-    toastController,
 } from "@ionic/vue";
-import {computed, onMounted, Ref, ref} from "vue";
 import {closeOutline, star, trash} from "ionicons/icons";
+import {computed, onMounted, Ref, ref} from "vue";
 import {BingoBoard, BingoBoardAPI} from "@/views/start-game-modal/BingoBoardAPI";
+import {showError, showSuccess, showWarning} from "@/services/toast";
 
 const api = new BingoBoardAPI();
 const cancel = () => modalController.dismiss(null, "cancel");
@@ -144,8 +183,9 @@ const itemList = ref<string[]>([]);
 const freeSpace = ref<string | null>(null);
 const sourceBoardId = ref<string | null>(null);
 const themeName = ref<string>("");
-const errorMessage = ref<string>("");
 const isLoading = ref<boolean>(false);
+const isBulkMode = ref<boolean>(false);
+const bulkInput = ref<string>("");
 
 const boards: Ref<BingoBoard[]> = ref([]);
 
@@ -163,14 +203,54 @@ const addItem = () => {
         return;
     }
     if (itemList.value.some(item => item.toLowerCase() === trimmedItem.toLowerCase())) {
-        errorMessage.value = 'This item already exists';
+        showError('This item already exists');
         return;
     }
     if (!itemList.value.includes(trimmedItem)) {
         itemList.value.push(trimmedItem);
         currentItem.value = "";
-        errorMessage.value = "";
     }
+};
+
+const bulkAddItems = () => {
+    if (!bulkInput.value.trim()) {
+        return;
+    }
+
+    const newItems = bulkInput.value
+        .split(/[,\n]/)
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+
+    if (newItems.length === 0) {
+        return;
+    }
+
+    let addedCount = 0;
+    let duplicateCount = 0;
+
+    for (const item of newItems) {
+        const isDuplicate = itemList.value.some(
+            existing => existing.toLowerCase() === item.toLowerCase()
+        );
+        if (!isDuplicate) {
+            itemList.value.push(item);
+            addedCount++;
+        } else {
+            duplicateCount++;
+        }
+    }
+
+    if (addedCount > 0) {
+        const message = duplicateCount > 0
+            ? `Added ${addedCount} item(s). ${duplicateCount} duplicate(s) skipped.`
+            : `Added ${addedCount} item(s).`;
+        showSuccess(message);
+    } else {
+        showWarning(`All ${duplicateCount} items are duplicates.`);
+    }
+
+    bulkInput.value = "";
 };
 
 const deleteItem = (item: string) => {
@@ -219,21 +299,19 @@ const loadBoardForEditing = async () => {
         freeSpace.value = board.freeSpace || null;
     } catch (error) {
         console.error('Error loading board for editing:', error);
-        errorMessage.value = 'Failed to load board for editing';
+        showError('Failed to load board for editing');
         modalController.dismiss(null, "cancel");
     }
 };
 
 const saveTheme = async () => {
-    errorMessage.value = "";
-
     if (!themeName.value.trim()) {
-        errorMessage.value = "Please enter a theme name";
+        showError("Please enter a theme name");
         return;
     }
 
     if (itemList.value.length < 24) {
-        errorMessage.value = `Please add at least ${24 - itemList.value.length} more items`;
+        showError(`Please add at least ${24 - itemList.value.length} more items`);
         return;
     }
 
@@ -245,30 +323,20 @@ const saveTheme = async () => {
                 items: itemList.value,
                 freeSpace: freeSpace.value,
             });
-            const toast = await toastController.create({
-                message: 'Board updated!',
-                duration: 2000,
-                color: 'dusty-green',
-            });
-            await toast.present();
+            showSuccess('Board updated!');
         } else {
             await api.createBingoBoard({
                 name: themeName.value.trim(),
                 items: itemList.value,
                 freeSpace: freeSpace.value || undefined,
             });
-            const toast = await toastController.create({
-                message: 'Board created!',
-                duration: 2000,
-                color: 'dusty-green',
-            });
-            await toast.present();
+            showSuccess('Board created!');
         }
 
         modalController.dismiss(null, "saved");
     } catch (error) {
         console.error('Error saving board:', error);
-        errorMessage.value = error instanceof Error ? error.message : 'Failed to save board';
+        showError(error instanceof Error ? error.message : 'Failed to save board');
     } finally {
         isLoading.value = false;
     }
@@ -279,7 +347,7 @@ onMounted(async () => {
         boards.value = await api.getBingoBoards();
     } catch (error) {
         console.error('Error loading boards:', error);
-        errorMessage.value = 'Failed to load boards';
+        showError('Failed to load boards');
     }
 
     if (isEditing.value) {
@@ -288,4 +356,10 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.input-mode-toggle {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+</style>

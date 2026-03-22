@@ -21,12 +21,12 @@
           <h1 class="home-title">Bingo in the Wild</h1>
         </ion-text>
 
-        <ion-button v-if="loggedIn"
-                    class="home-btn"
-                    color="dusty-green"
-                    shape="round"
-                    size="large"
-                    @click="startGame"
+        <ion-button
+            class="home-btn"
+            color="dusty-green"
+            shape="round"
+            size="large"
+            @click="startGame"
         >
           <span class="align-left">
             <ion-icon slot="start" :icon="trophy" size="large"/>
@@ -72,8 +72,7 @@
         >
           <span class="align-left">
             <ion-icon slot="start" :icon="logInOutline" size="large"/>
-            Log in
-          </span>
+            Log in</span>
         </ion-button>
       </div>
     </ion-content>
@@ -94,7 +93,6 @@ const ionRouter = useIonRouter();
 const loggedIn = computed(() => isLoggedIn());
 
 const startGame = async () => {
-    console.log("Start game clicked");
     const modal = await modalController.create({
         component: StartGameModal,
     });

@@ -1,6 +1,6 @@
 <template>
-  <ion-tabs class="h-100">
-    <ion-tab tab="my-games">
+  <ion-tabs class="h-100" @ionTabsDidChange="onTabChange">
+    <ion-tab tab="my-games" v-if="loggedIn">
       <div id="my-games-page" class="example-content">
         <ion-header>
           <ion-toolbar color="dusty-green">
@@ -120,21 +120,25 @@
       </div>
     </ion-tab>
     <ion-tab-bar slot="bottom" color="dusty-green">
-      <ion-tab-button tab="my-games">
+      <ion-tab-button tab="my-games" v-if="loggedIn" @click="handleMyGamesClick">
         <ion-icon :icon="personCircle"/>
-        My Games
+        <ion-label>My Games</ion-label>
+      </ion-tab-button>
+      <ion-tab-button v-if="!loggedIn" @click="handleMyGamesClick" :class="{ 'guest-tab': true }">
+        <ion-icon :icon="personCircle"/>
+        <ion-label>My Games</ion-label>
       </ion-tab-button>
       <ion-tab-button tab="sports">
         <ion-icon :icon="americanFootball"/>
-        Sports
+        <ion-label>Sports</ion-label>
       </ion-tab-button>
       <ion-tab-button tab="social">
         <ion-icon :icon="beer"/>
-        Social
+        <ion-label>Social</ion-label>
       </ion-tab-button>
       <ion-tab-button tab="location">
         <ion-icon :icon="compass"/>
-        Location Based
+        <ion-label>Location</ion-label>
       </ion-tab-button>
     </ion-tab-bar>
   </ion-tabs>
@@ -164,7 +168,7 @@ import {
     toastController,
 } from "@ionic/vue";
 import {addOutline, americanFootball, beer, compass, createOutline, personCircle, trashOutline} from "ionicons/icons";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {
     BingoBoard,
     BingoBoardAPI,
@@ -173,6 +177,7 @@ import {
     SPORTS_CATEGORY
 } from "@/views/start-game-modal/BingoBoardAPI";
 import AddEditNewBoardModal from "@/views/start-game-modal/AddEditNewBoardModal.vue";
+import {isLoggedIn, login, user} from "@/services/auth";
 
 const api = new BingoBoardAPI();
 const cancel = () => modalController.dismiss(null, "cancel");
@@ -180,10 +185,36 @@ const select = (id: string) => {
     modalController.dismiss(id, "select");
 };
 
+const loggedIn = computed(() => isLoggedIn());
+const currentUser = user;
+
 const myBoards = ref<BingoBoard[]>([]);
 const sportsBoards = ref<BingoBoard[]>([]);
 const socialBoards = ref<BingoBoard[]>([]);
 const locationBoards = ref<BingoBoard[]>([]);
+
+const handleMyGamesClick = async () => {
+    if (!loggedIn.value) {
+        const alert = await alertController.create({
+            header: 'My Games',
+            message: 'Log in to create your own games and share them with friends. You can still play with pre-built boards without logging in!',
+            buttons: [
+                {
+                    text: 'Cancel',
+                    role: 'cancel',
+                },
+                {
+                    text: 'Log In',
+                    handler: async () => {
+                        await modalController.dismiss(null, "cancel");
+                        await login();
+                    },
+                },
+            ],
+        });
+        await alert.present();
+    }
+};
 
 const createNewBoard = () => {
     modalController.dismiss(null, "create-new-board");
@@ -200,7 +231,7 @@ const editBoard = async (board: BingoBoard) => {
 
     const {role} = await modal.onWillDismiss();
     if (role === "saved") {
-        await refreshBoards();
+        await fetchUserBoards();
     }
 };
 
@@ -246,27 +277,56 @@ const deleteBoard = async (board: BingoBoard) => {
     }
 };
 
-const refreshBoards = async () => {
+const fetchPublicBoards = async () => {
     try {
         const allBoards = await api.getBingoBoards();
-        myBoards.value = allBoards.filter(board => board.category == null);
         sportsBoards.value = allBoards.filter(board => board.category === SPORTS_CATEGORY);
         socialBoards.value = allBoards.filter(board => board.category === SOCIAL_CATEGORY);
         locationBoards.value = allBoards.filter(board => board.category === LOCATION_CATEGORY);
     } catch (error) {
-        console.error('Error refreshing boards:', error);
-        const toast = await toastController.create({
-            message: 'Failed to load boards',
-            duration: 2000,
-            color: 'danger',
-        });
-        await toast.present();
+        console.error('Error fetching public boards:', error);
     }
 };
 
-onMounted(async () => {
-    await refreshBoards();
+const fetchUserBoards = async () => {
+    const currentUserValue = currentUser.value;
+    if (!currentUserValue?.sub) return;
+
+    try {
+        myBoards.value = await api.getBingoBoardsByUser(currentUserValue.sub);
+    } catch (error) {
+        console.error('Error fetching user boards:', error);
+        myBoards.value = [];
+    }
+};
+
+const refreshAllBoards = async () => {
+    await fetchPublicBoards();
+    if (loggedIn.value) {
+        await fetchUserBoards();
+    } else {
+        myBoards.value = [];
+    }
+};
+
+watch(loggedIn, async (newVal) => {
+    if (newVal) {
+        await fetchUserBoards();
+    } else {
+        myBoards.value = [];
+    }
 });
+
+onMounted(async () => {
+    await refreshAllBoards();
+});
+
+const onTabChange = async (event: CustomEvent) => {
+    const tab = event.detail.tab;
+    if (tab === 'my-games' && !loggedIn.value) {
+        await handleMyGamesClick();
+    }
+};
 </script>
 
 <style>
@@ -283,5 +343,9 @@ onMounted(async () => {
 
 .new-board-btn {
     margin-top: auto;
+}
+
+.guest-tab {
+    opacity: 0.5;
 }
 </style>

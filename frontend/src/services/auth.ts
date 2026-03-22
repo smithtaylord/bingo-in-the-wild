@@ -61,7 +61,7 @@ export function isLoggedIn() {
     return isAuthenticated.value;
 }
 
-export {isLoading};
+export {isLoading, user};
 
 export async function getAccessToken() {
     return await auth0Client.getTokenSilently();

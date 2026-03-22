@@ -61,6 +61,17 @@ export class BingoBoardAPI {
         return await response.json();
     }
 
+    async getBingoBoardsByUser(userId: string): Promise<BingoBoard[]> {
+        const headers = await this.getAuthHeaders();
+        const response = await fetch(`api/bingo-board/user/${userId}`, {headers});
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    }
+
     async createBingoBoard(input: CreateBoardInput): Promise<BingoBoard> {
         const headers = await this.getAuthHeaders();
         const response = await fetch('api/bingo-board', {
