@@ -247,11 +247,21 @@ const deleteBoard = async (board: BingoBoard) => {
 };
 
 const refreshBoards = async () => {
-    const allBoards = await api.getBingoBoards();
-    myBoards.value = allBoards.filter(board => board.category == null);
-    sportsBoards.value = allBoards.filter(board => board.category === SPORTS_CATEGORY);
-    socialBoards.value = allBoards.filter(board => board.category === SOCIAL_CATEGORY);
-    locationBoards.value = allBoards.filter(board => board.category === LOCATION_CATEGORY);
+    try {
+        const allBoards = await api.getBingoBoards();
+        myBoards.value = allBoards.filter(board => board.category == null);
+        sportsBoards.value = allBoards.filter(board => board.category === SPORTS_CATEGORY);
+        socialBoards.value = allBoards.filter(board => board.category === SOCIAL_CATEGORY);
+        locationBoards.value = allBoards.filter(board => board.category === LOCATION_CATEGORY);
+    } catch (error) {
+        console.error('Error refreshing boards:', error);
+        const toast = await toastController.create({
+            message: 'Failed to load boards',
+            duration: 2000,
+            color: 'danger',
+        });
+        await toast.present();
+    }
 };
 
 onMounted(async () => {

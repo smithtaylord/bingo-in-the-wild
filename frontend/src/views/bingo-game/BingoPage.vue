@@ -94,7 +94,7 @@ import {
   useIonRouter,
 } from "@ionic/vue";
 import { home, list, trashBin, warning } from "ionicons/icons";
-import { computed, Ref, ref, watch } from "vue";
+import { computed, onUnmounted, Ref, ref, watch } from "vue";
 import {
   addBoardToLocalStorage,
   BingoCell,
@@ -163,6 +163,10 @@ const cancelPress = () => {
     pressTimer = null;
   }
 };
+
+onUnmounted(() => {
+  cancelPress();
+});
 
 const resetGame = () => {
   removeBoardFromLocalStorage();

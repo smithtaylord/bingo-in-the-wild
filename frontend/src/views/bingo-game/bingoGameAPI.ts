@@ -11,13 +11,7 @@ function shuffle<T>(array: T[]): T[] {
 }
 
 export class BingoGameAPI {
-    private boards: Map<string, BingoBoard> = new Map();
-
     async loadBoard(id: string): Promise<BingoBoard | null> {
-        if (this.boards.has(id)) {
-            return this.boards.get(id) || null;
-        }
-
         try {
             const response = await fetch(`api/bingo-board/${id}`);
             if (!response.ok) {
@@ -26,9 +20,7 @@ export class BingoGameAPI {
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const board: BingoBoard = await response.json();
-            this.boards.set(id, board);
-            return board;
+            return await response.json();
         } catch (error) {
             console.error('Error fetching board:', error);
             return null;

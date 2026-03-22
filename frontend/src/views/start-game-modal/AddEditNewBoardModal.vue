@@ -159,7 +159,14 @@ const availableBoards = computed(() => {
 
 const addItem = () => {
     const trimmedItem = currentItem.value.trim();
-    if (trimmedItem && !itemList.value.includes(trimmedItem)) {
+    if (!trimmedItem) {
+        return;
+    }
+    if (itemList.value.some(item => item.toLowerCase() === trimmedItem.toLowerCase())) {
+        errorMessage.value = 'This item already exists';
+        return;
+    }
+    if (!itemList.value.includes(trimmedItem)) {
         itemList.value.push(trimmedItem);
         currentItem.value = "";
         errorMessage.value = "";
@@ -205,10 +212,16 @@ const onSourceBoardSelected = (event: CustomEvent) => {
 const loadBoardForEditing = async () => {
     if (!props.editBoardId) return;
 
-    const board = await api.getBingoBoardById(props.editBoardId);
-    themeName.value = board.name;
-    itemList.value = [...board.items];
-    freeSpace.value = board.freeSpace || null;
+    try {
+        const board = await api.getBingoBoardById(props.editBoardId);
+        themeName.value = board.name;
+        itemList.value = [...board.items];
+        freeSpace.value = board.freeSpace || null;
+    } catch (error) {
+        console.error('Error loading board for editing:', error);
+        errorMessage.value = 'Failed to load board for editing';
+        modalController.dismiss(null, "cancel");
+    }
 };
 
 const saveTheme = async () => {
@@ -262,7 +275,13 @@ const saveTheme = async () => {
 };
 
 onMounted(async () => {
-    boards.value = await api.getBingoBoards();
+    try {
+        boards.value = await api.getBingoBoards();
+    } catch (error) {
+        console.error('Error loading boards:', error);
+        errorMessage.value = 'Failed to load boards';
+    }
+
     if (isEditing.value) {
         await loadBoardForEditing();
     }
