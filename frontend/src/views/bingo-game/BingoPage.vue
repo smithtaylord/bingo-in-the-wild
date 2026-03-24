@@ -7,6 +7,20 @@
           <h4>Theme: {{ themeName }}</h4>
         </ion-text>
 
+        <div v-if="shareCode" class="share-code-row" @click="openShareModal">
+          <span class="share-code-label">Share Code:</span>
+          <span class="share-code-value">{{ shareCode }}</span>
+          <ion-button size="small" color="dark-green" shape="round">
+            Details
+          </ion-button>
+        </div>
+
+        <div v-else-if="isOwner" class="share-code-row">
+          <ion-button size="small" color="coral" shape="round" @click="openShareModal">
+            Share Game
+          </ion-button>
+        </div>
+
         <div class="bingo-grid ion-margin-bottom">
           <div v-for="letter in 'BINGO'" :key="letter" class="bingo-header">
             <div class="bingo-box-header">
@@ -88,6 +102,7 @@ import {
   IonModal,
   IonPage,
   IonText,
+  modalController,
   onIonViewWillEnter,
   popoverController,
   toastController,
@@ -95,6 +110,7 @@ import {
 } from "@ionic/vue";
 import { home, list, trashBin, warning } from "ionicons/icons";
 import { computed, onUnmounted, Ref, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import {
   addBoardToLocalStorage,
   BingoCell,
@@ -109,11 +125,20 @@ import BingoListOptionsModal from "@/views/bingo-game/BingoListOptionsModal.vue"
 import MiniGrid from "@/views/bingo-game/MiniGrid.vue";
 import JSConfetti from "js-confetti";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
+import { BingoBoardAPI } from "@/views/start-game-modal/BingoBoardAPI";
+import { user } from "@/services/auth";
+import { showError } from "@/services/toast";
+import ShareCodeModal from "@/views/start-game-modal/ShareCodeModal.vue";
 
 const props = defineProps<{ id: string }>();
+const route = useRoute();
 const ionRouter = useIonRouter();
 const winner = ref<boolean>(false);
 const board: Ref<BingoCell[][]> = ref([]);
+
+const shareCode = ref<string | null>(null);
+const isOwner = ref<boolean>(false);
+const boardApi = new BingoBoardAPI();
 
 const flatBoard = computed(() =>
   board.value.flatMap((row, rowIndex) =>
@@ -128,6 +153,75 @@ const flatBoard = computed(() =>
 const themeName = ref<string>();
 const api = new BingoGameAPI();
 const jsConfetti = new JSConfetti();
+
+const openShareModal = async () => {
+  let code = shareCode.value;
+  let expiresAt = boardExpiresAt.value;
+
+  if (isOwner.value && !code) {
+    try {
+      const result = await boardApi.generateShareCode(props.id);
+      code = result.shareCode;
+      expiresAt = result.expiresAt;
+      shareCode.value = code;
+      boardExpiresAt.value = expiresAt;
+    } catch (error) {
+      console.error('Error generating share code:', error);
+      showError('Failed to generate share code');
+      return;
+    }
+  }
+
+  if (!code) return;
+
+  const modal = await modalController.create({
+    component: ShareCodeModal,
+    componentProps: {
+      boardId: props.id,
+      shareCode: code,
+      expiresAt: expiresAt || new Date().toISOString(),
+      isOwner: isOwner.value,
+    },
+    breakpoints: [0, 0.55, 1],
+    initialBreakpoint: 0.55,
+  });
+
+  await modal.present();
+
+  modal.onDidDismiss().then(({data}) => {
+    if (data?.shareCode) {
+      shareCode.value = data.shareCode;
+    }
+    if (data?.expiresAt) {
+      boardExpiresAt.value = data.expiresAt;
+    }
+    if (data?.action === 'disabled') {
+      shareCode.value = null;
+    }
+  });
+};
+
+const showPlayWithFriendsAlert = async () => {
+  const alert = await alertController.create({
+    header: 'Want to play with friends?',
+    buttons: [
+      {
+        text: 'Share Game',
+        handler: () => {
+          openShareModal();
+        },
+      },
+      {
+        text: 'Play Solo',
+        role: 'cancel',
+      },
+    ],
+  });
+
+  await alert.present();
+};
+
+const boardExpiresAt: Ref<string | null> = ref(null);
 
 let pressTimer: number | null = null;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -259,14 +353,45 @@ watch(
 );
 
 onIonViewWillEnter(async () => {
+  shareCode.value = route.query.code as string | null;
+
   const savedGameBoard = retrieveBoardFromLocalStorage();
   if (savedGameBoard) {
     board.value = savedGameBoard;
+    await checkOwnership();
+    checkAndShowPlayWithFriendsAlert();
     return;
   }
 
   await createBoard();
+  await checkOwnership();
+  checkAndShowPlayWithFriendsAlert();
 });
+
+const checkAndShowPlayWithFriendsAlert = () => {
+  if (isOwner.value && !shareCode.value) {
+    showPlayWithFriendsAlert();
+  }
+};
+
+const checkOwnership = async () => {
+  const currentUser = user.value;
+  if (!currentUser?.sub) {
+    isOwner.value = false;
+    return;
+  }
+
+  try {
+    const boardData = await boardApi.getBingoBoardById(props.id);
+    isOwner.value = boardData.userId === currentUser.sub;
+    if (boardData.shareCodeExpiresAt) {
+      boardExpiresAt.value = boardData.shareCodeExpiresAt;
+    }
+  } catch (error) {
+    console.error('Error checking ownership:', error);
+    isOwner.value = false;
+  }
+};
 
 // List View
 const isModalOpen = ref(false);
@@ -383,5 +508,31 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
 .bingo-card-container {
   max-width: 600px;
   margin: auto;
+}
+
+.share-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.25rem 1rem;
+  margin: 0 auto 0.5rem;
+  max-width: 400px;
+}
+
+.share-code-label {
+  color: var(--ion-color-dark-green);
+  font-size: 0.9rem;
+}
+
+.share-code-value {
+  color: var(--ion-color-dark-green);
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  font-size: 1rem;
+}
+
+.share-code-row ion-button {
+  margin: 0;
 }
 </style>

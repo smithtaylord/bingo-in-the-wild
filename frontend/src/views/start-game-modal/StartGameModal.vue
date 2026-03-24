@@ -13,12 +13,20 @@
         <ion-content>
           <div class="my-games-content">
             <ion-list lines="inset">
-              <ion-item-sliding v-for="board in myBoards" :key="board._id">
-                <ion-item :detail="false" button color="white" @click="select(board._id)">
-                  <ion-label color="dark-green">
+              <ion-item-sliding
+                  v-for="board in myBoards"
+                  :key="board._id"
+              >
+                <ion-item button color="white">
+                  <ion-label color="dark-green" @click="select(board)">
                     {{ board.name }}
+                    <p v-if="board.shareCode" color="medium">
+                      <ion-icon :icon="shareSocialOutline" size="small"></ion-icon>
+                      {{ board.shareCode }}
+                    </p>
                   </ion-label>
                 </ion-item>
+
                 <ion-item-options side="end">
                   <ion-item-option color="warning" @click="editBoard(board)">
                     <ion-icon slot="start" :icon="createOutline"></ion-icon>
@@ -61,7 +69,7 @@
                 button
                 color="white"
             >
-              <ion-label color="dark-green" @click="select(board._id)">
+              <ion-label color="dark-green" @click="select(board)">
                 {{ board.name }}
               </ion-label>
             </ion-item>
@@ -86,7 +94,7 @@
                 button
                 color="white"
             >
-              <ion-label color="dark-green" @click="select(board._id)">
+              <ion-label color="dark-green" @click="select(board)">
                 {{ board.name }}
               </ion-label>
             </ion-item>
@@ -111,7 +119,7 @@
                 button
                 color="white"
             >
-              <ion-label color="dark-green" @click="select(board._id)">
+              <ion-label color="dark-green" @click="select(board)">
                 {{ board.name }}
               </ion-label>
             </ion-item>
@@ -165,9 +173,8 @@ import {
     IonTitle,
     IonToolbar,
     modalController,
-    toastController,
 } from "@ionic/vue";
-import {addOutline, americanFootball, beer, compass, createOutline, personCircle, trashOutline} from "ionicons/icons";
+import {addOutline, americanFootball, beer, compass, createOutline, personCircle, shareSocialOutline, trashOutline} from "ionicons/icons";
 import {computed, onMounted, ref, watch} from "vue";
 import {
     BingoBoard,
@@ -178,11 +185,13 @@ import {
 } from "@/views/start-game-modal/BingoBoardAPI";
 import AddEditNewBoardModal from "@/views/start-game-modal/AddEditNewBoardModal.vue";
 import {isLoggedIn, login, user} from "@/services/auth";
+import {showError, showSuccess} from "@/services/toast";
 
 const api = new BingoBoardAPI();
 const cancel = () => modalController.dismiss(null, "cancel");
-const select = (id: string) => {
-    modalController.dismiss(id, "select");
+const select = (board: BingoBoard) => {
+    const result = {id: board._id, shareCode: board.shareCode || null};
+    modalController.dismiss(result, "select");
 };
 
 const loggedIn = computed(() => isLoggedIn());
@@ -259,21 +268,11 @@ const confirmDelete = async (board: BingoBoard) => {
 const deleteBoard = async (board: BingoBoard) => {
     try {
         await api.deleteBingoBoard(board._id);
-        myBoards.value = myBoards.value.filter(b => b._id !== board._id);
-        const toast = await toastController.create({
-            message: 'Board deleted',
-            duration: 2000,
-            color: 'dusty-green',
-        });
-        await toast.present();
+        showSuccess('Board deleted');
+        await fetchUserBoards();
     } catch (error) {
         console.error('Error deleting board:', error);
-        const toast = await toastController.create({
-            message: 'Failed to delete board',
-            duration: 2000,
-            color: 'danger',
-        });
-        await toast.present();
+        showError('Failed to delete board');
     }
 };
 

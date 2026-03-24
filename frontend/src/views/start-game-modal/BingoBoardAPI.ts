@@ -5,6 +5,8 @@ export interface BingoBoard {
     items: string[];
     category?: string;
     userId?: string;
+    shareCode?: string;
+    shareCodeExpiresAt?: string;
     createdOn: string;
     updatedOn: string;
 }
@@ -21,6 +23,11 @@ export interface UpdateBoardInput {
     items?: string[];
     freeSpace?: string | null;
     category?: string;
+}
+
+export interface ShareCodeResult {
+    shareCode: string;
+    expiresAt: string;
 }
 
 export const SPORTS_CATEGORY = 'Sports';
@@ -115,5 +122,59 @@ export class BingoBoardAPI {
             const error = await response.json();
             throw new Error(error.message || 'Failed to delete board');
         }
+    }
+
+    async getBoardByShareCode(code: string): Promise<BingoBoard> {
+        const response = await fetch(`api/bingo-board/code/${code}`);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Board not found or code has expired');
+        }
+
+        return await response.json();
+    }
+
+    async generateShareCode(boardId: string): Promise<ShareCodeResult> {
+        const headers = await this.getAuthHeaders();
+        const response = await fetch(`api/bingo-board/${boardId}/share`, {
+            method: 'POST',
+            headers,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to generate share code');
+        }
+
+        return await response.json();
+    }
+
+    async disableShareCode(boardId: string): Promise<void> {
+        const headers = await this.getAuthHeaders();
+        const response = await fetch(`api/bingo-board/${boardId}/share`, {
+            method: 'DELETE',
+            headers,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to disable share code');
+        }
+    }
+
+    async copyBoard(boardId: string): Promise<BingoBoard> {
+        const headers = await this.getAuthHeaders();
+        const response = await fetch(`api/bingo-board/${boardId}/copy`, {
+            method: 'POST',
+            headers,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to copy board');
+        }
+
+        return await response.json();
     }
 }

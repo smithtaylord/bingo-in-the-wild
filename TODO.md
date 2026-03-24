@@ -55,18 +55,135 @@
 - [x] Show count of items added
 - [x] Clear textarea after successful add
 
-### Route Protection (Optional)
-- [ ] Add `meta.requiresAuth` to protected routes in `router/index.ts`
-- [ ] Implement `router.beforeEach` navigation guard
-- [ ] Test protected routes redirect properly
-
-**Note:** State management (Pinia) is not needed for single-player mode. It would only be beneficial for Phase 3 multiplayer when WebSocket state synchronization becomes necessary.
+### Toast Notifications
+- [x] Create `services/toast.ts` utility for consistent toast styling
+- [x] Replace inline messages with toast notifications
+- [x] Success toasts use `dark-green` color (dark background, light text)
+- [x] Error toasts use `danger` color
+- [x] Warning toasts use `warning` color
 
 ---
 
-## Phase 3: New Features
+## Phase 3: Shareable Boards MVP
 
-### Feature 1: Game Sharing via Code (Jackbox-style)
+### Overview
+Board owners can share their themes with others via a 6-character code. Players can join using the code without logging in. Logged-in players can optionally save shared themes to their own collection.
+
+### Backend Changes
+
+#### BingoBoard Model Updates
+**File:** `backend/src/board/bingo-board-model.ts`
+- [x] Add `shareCode: String` (6-char, sparse unique index)
+- [x] Add `shareCodeExpiresAt: Date` (expiration timestamp)
+- [x] Add unique sparse index on `shareCode` field
+
+#### Share Code Generation Logic
+**File:** `backend/src/board/bingo-board-service.ts`
+- [x] Implement `generateShareCode()` function
+  - Characters: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no I, O, 0, 1)
+  - Retry logic on collision (3-5 attempts)
+- [x] Implement `generateUniqueCode()` with collision handling
+
+#### Backend Service Methods
+**File:** `backend/src/board/bingo-board-service.ts`
+- [x] `generateShareCode(boardId, userId)` - Generate 6-char code, set 24hr expiry
+- [x] `disableShareCode(boardId, userId)` - Clear code and expiry
+- [x] `getBoardByShareCode(code)` - Find board, check expiry, throw 404 if invalid/expired
+- [x] `copyBoard(boardId, userId)` - Create independent copy with "(Copy)" suffix
+
+#### Backend Endpoints
+**File:** `backend/src/board/bingo-board-controller.ts`
+- [x] `POST /api/bingo-board/:id/share` - Generate/regenerate share code (owner only)
+- [x] `DELETE /api/bingo-board/:id/share` - Disable sharing, clear code (owner only)
+- [x] `GET /api/bingo-board/code/:code` - Get board by share code (public, no auth)
+- [x] `POST /api/bingo-board/:id/copy` - Copy board to user's collection (auth required)
+
+---
+
+### Frontend Changes
+
+#### BingoBoardAPI Updates
+**File:** `frontend/src/views/start-game-modal/BingoBoardAPI.ts`
+- [x] `generateShareCode(boardId)` - Returns `{ shareCode, expiresAt }`
+- [x] `disableShareCode(boardId)` - Clears share code
+- [x] `getBoardByShareCode(code)` - Gets board data for code
+- [x] `copyBoard(boardId)` - Creates copy for current user
+
+#### HomePage Updates
+**File:** `frontend/src/views/home/HomePage.vue`
+- [x] Add "Join a Game" button (visible to all users)
+- [x] Toggle to show inline OTP input + buttons
+- [x] Cancel button (left) + Join button (right)
+- [x] Join button validates via API
+- [x] Show error toast for invalid/expired codes
+- [x] On success, navigate to `/bingo-game/:boardId?code=ABC123`
+
+#### New: ShareCodeModal
+**File:** `frontend/src/views/start-game-modal/ShareCodeModal.vue` (NEW)
+- [x] Display share code in large, copyable text
+- [x] "Copy Code" button
+- [x] Show expiration time countdown (e.g., "Expires in 23h 45m")
+- [x] "Regenerate Code" button (size="small", generates new code)
+- [x] "Disable Sharing" button (clears code, side-by-side with Regenerate)
+- [x] "Go to Game Board" button - navigates to game
+- [x] Fix regenerate - updates local state after API call
+
+#### StartGameModal Updates
+**File:** `frontend/src/views/start-game-modal/StartGameModal.vue`
+- [x] For owned boards: Tap opens BoardDetailModal instead of starting game
+- [x] Remove swipe actions (now in BoardDetailModal)
+- [x] Public boards (Sports/Social/Location): Keep 1-tap to play
+
+#### New: BoardDetailModal
+**File:** `frontend/src/views/start-game-modal/BoardDetailModal.vue` (NEW)
+- [x] Display board name
+- [x] "Play Game" button - starts game
+- [x] "Share Theme" button - generates code if needed, opens ShareCodeModal
+- [x] "Edit Board" button - opens AddEditNewBoardModal
+- [x] "Delete Board" button - confirmation + delete
+
+#### BingoPage Updates
+**File:** `frontend/src/views/bingo-game/BingoPage.vue`
+- [x] Read `code` and `boardId` from route query params
+- [x] Store share info in component state
+- [x] Share code display below theme name (dark-green pill)
+- [x] "Details" button opens ShareCodeModal
+- [x] Only show share code if board has a share code
+
+**ShareCodeModal Updates**
+- [x] "Go to Game Board" button uses play icon
+- [x] `isOwner` prop controls Regenerate/Disable visibility
+- [x] Guests see only Copy Code and Go to Game Board
+
+**Fast Modal Dismissal**
+- [x] Use `onWillDismiss` for faster response
+- [x] All modals dismiss immediately, then navigate
+
+#### Route Handling
+```
+/bingo-game/:boardId              → Standard game (owner view)
+/bingo-game/:boardId?code=ABC123  → Game joined via share code
+```
+
+---
+
+### Implementation Order
+- [x] Backend: Model Update - Add shareCode fields to schema
+- [x] Backend: Service Layer - Implement share code logic with retry
+- [x] Backend: Controller/Endpoints - Add 4 new routes
+- [x] Frontend: API Client - Add new methods to BingoBoardAPI
+- [x] Frontend: HomePage - Add "Join with Code" button
+- [x] Frontend: JoinWithCodeModal - New modal
+- [x] Frontend: ShareCodeModal - New modal
+- [x] Frontend: StartGameModal - Add Share button for owned boards
+- [x] Frontend: BingoPage - Add share info popover + Save Theme button
+- [ ] Testing - Verify all flows work
+
+---
+
+## Phase 4: Advanced Features
+
+### Feature 1: Full Multiplayer with Real-Time Sync
 
 **Game Flow:**
 - Host creates a game session with a selected board
@@ -175,7 +292,7 @@ Server → Client:
 
 ---
 
-## Phase 4: Polish & Production Readiness
+## Phase 5: Polish & Production Readiness
 
 ### Error Handling
 - [ ] Add global error boundary in Vue
@@ -200,25 +317,32 @@ Server → Client:
 
 ---
 
+## Dependencies
+
+```
+Phase 1 Core Game Fix → Phase 2 Board CRUD (needs working boards)
+Phase 2 Core Features → Phase 3 Shareable Boards (needs working boards)
+Phase 4 Advanced Features (multiplayer) → Phase 4 WebSockets
+Phase 4 Themes → Independent (can parallelize with Phase 3)
+```
+
+---
+
 ## Model Usage Recommendations
 
 | Phase | Recommended Model | Reasoning |
 |-------|-------------------|-----------|
 | Phase 1 (Fixes) | Coding model | Small fixes, no architecture decisions |
 | Phase 2 (Core) | Coding model | CRUD endpoints - straightforward |
-| Phase 3.1 (Sharing) | Planning → Coding | Need design decisions first |
-| Phase 3.2 (Themes) | Coding model | Straightforward CSS |
-| Phase 3.3 (WebSockets) | Planning → Coding | Architecture decisions critical |
-| Phase 4 (Polish) | Coding model | Incremental improvements |
+| Phase 3 (Shareable) | Planning → Coding | Need design decisions first |
+| Phase 4.1 (Multiplayer) | Planning → Coding | Architecture decisions critical |
+| Phase 4.2 (Themes) | Coding model | Straightforward CSS |
+| Phase 4.3 (WebSockets) | Planning → Coding | Architecture decisions critical |
+| Phase 5 (Polish) | Coding model | Incremental improvements |
 
 ---
 
-## Dependencies
+## Notes
 
-```
-Phase 1 Core Game Fix → Phase 2 Board CRUD (needs working boards)
-Phase 3.1 Game Sessions → Phase 3.3 WebSockets
-Phase 3.2 Themes → Independent (can parallelize)
-```
-
-**Note:** Route Protection is optional - auth works without it, it's just for better UX.
+- Route Protection is optional - auth works without it, it's just for better UX.
+- State management (Pinia) is not needed for current features. Would only be beneficial for Phase 4 multiplayer when WebSocket state synchronization becomes necessary.

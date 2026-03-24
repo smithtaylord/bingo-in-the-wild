@@ -170,6 +170,7 @@ import {closeOutline, star, trash} from "ionicons/icons";
 import {computed, onMounted, Ref, ref} from "vue";
 import {BingoBoard, BingoBoardAPI} from "@/views/start-game-modal/BingoBoardAPI";
 import {showError, showSuccess, showWarning} from "@/services/toast";
+import {user} from "@/services/auth";
 
 const api = new BingoBoardAPI();
 const cancel = () => modalController.dismiss(null, "cancel");
@@ -344,7 +345,16 @@ const saveTheme = async () => {
 
 onMounted(async () => {
     try {
-        boards.value = await api.getBingoBoards();
+        const [publicBoards, userBoards] = await Promise.all([
+            api.getBingoBoards(),
+            user.value?.sub ? api.getBingoBoardsByUser(user.value.sub) : Promise.resolve([])
+        ]);
+
+        const boardMap = new Map<string, BingoBoard>();
+        [...publicBoards, ...userBoards].forEach(board => {
+            boardMap.set(board._id, board);
+        });
+        boards.value = Array.from(boardMap.values());
     } catch (error) {
         console.error('Error loading boards:', error);
         showError('Failed to load boards');

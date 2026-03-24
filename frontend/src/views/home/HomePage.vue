@@ -33,37 +33,56 @@
             Start a New Game</span>
         </ion-button>
 
-        <div v-if="showJoinOptions">
-          <ion-text align="center" class="ion-padding-top ion-margin-top" color="dark-green">
-            <h5>Enter Code to Join Game</h5>
-          </ion-text>
-          <ion-input-otp :length="6" class="white-fill" color="dark" fill="solid"></ion-input-otp>
-          <div class="join-btn-container">
-            <ion-button
-                color="dark-green"
-                shape="round"
-                size="small"
-                @click="joinGame"
-            >
-              <ion-icon slot="start" :icon="addOutline" size="small"/>
-              Join
-            </ion-button>
-          </div>
-        </div>
-
-        <ion-button v-else
-                    class="home-btn"
-                    color="dusty-green"
-                    shape="round"
-                    size="large"
-                    @click="toggleJoinOptions"
+        <ion-button
+            v-if="!showJoinOptions"
+            class="home-btn"
+            color="dusty-green"
+            shape="round"
+            size="large"
+            @click="toggleJoinOptions"
         >
           <span class="align-left">
             <ion-icon slot="start" :icon="addOutline" size="large"/>
             Join a Game</span>
         </ion-button>
 
-        <ion-button v-if="!loggedIn"
+        <div v-else class="join-code-section">
+          <ion-text align="center" class="ion-padding-top ion-margin-top" color="dark-green">
+            <h5>Enter Code to Join Game</h5>
+          </ion-text>
+
+          <div class="otp-container">
+            <ion-input-otp
+                v-model="joinCode"
+                type="text"
+                :length="6"
+                class="white-fill"
+                color="dark"
+                fill="solid"
+            ></ion-input-otp>
+          </div>
+
+          <div class="join-btn-row">
+            <ion-button
+                color="medium"
+                shape="round"
+                @click="toggleJoinOptions"
+            >
+              Cancel
+            </ion-button>
+            <ion-button
+                color="coral"
+                shape="round"
+                :disabled="joinCode.length !== 6 || isLoading"
+                @click="joinWithCode"
+            >
+              <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
+              <span v-else>Join Game</span>
+            </ion-button>
+          </div>
+        </div>
+
+        <ion-button v-if="!loggedIn && !showJoinOptions"
                     class="home-btn"
                     color="coral"
                     shape="round"
@@ -80,7 +99,7 @@
 </template>
 
 <script lang="ts" setup>
-import {IonButton, IonContent, IonIcon, IonInputOtp, IonPage, IonText, modalController, useIonRouter} from "@ionic/vue";
+import {IonButton, IonContent, IonIcon, IonInputOtp, IonPage, IonSpinner, IonText, modalController, useIonRouter} from "@ionic/vue";
 import {addOutline, leafOutline, logInOutline, roseOutline, trophy} from "ionicons/icons";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 import {computed, ref} from "vue";
@@ -88,9 +107,21 @@ import {isLoggedIn, login} from "@/services/auth";
 import {removeBoardFromLocalStorage} from "@/views/bingo-game/bingoGameService";
 import StartGameModal from "@/views/start-game-modal/StartGameModal.vue";
 import AddEditNewBoardModal from "@/views/start-game-modal/AddEditNewBoardModal.vue";
+import {BingoBoardAPI} from "@/views/start-game-modal/BingoBoardAPI";
+import {showError} from "@/services/toast";
 
 const ionRouter = useIonRouter();
 const loggedIn = computed(() => isLoggedIn());
+const api = new BingoBoardAPI();
+
+const showJoinOptions = ref<boolean>(false);
+const joinCode = ref<string>("");
+const isLoading = ref<boolean>(false);
+
+const toggleJoinOptions = () => {
+    showJoinOptions.value = !showJoinOptions.value;
+    joinCode.value = "";
+};
 
 const startGame = async () => {
     const modal = await modalController.create({
@@ -103,7 +134,12 @@ const startGame = async () => {
 
     if (role === "select") {
         removeBoardFromLocalStorage();
-        ionRouter.push({name: "Bingo", params: {id: data}});
+        const {id, shareCode} = data;
+        if (shareCode) {
+            ionRouter.push(`/bingo/${id}?code=${shareCode}`);
+        } else {
+            ionRouter.push({name: "Bingo", params: {id}});
+        }
         return;
     }
 
@@ -121,13 +157,24 @@ const startGame = async () => {
     }
 };
 
-const showJoinOptions = ref<boolean>(false);
-const toggleJoinOptions = () => {
-    showJoinOptions.value = !showJoinOptions.value;
-};
+const joinWithCode = async () => {
+    if (joinCode.value.length !== 6) {
+        showError('Please enter a 6-character code');
+        return;
+    }
 
-const joinGame = () => {
-    console.log("Join game clicked");
+    isLoading.value = true;
+
+    try {
+        const board = await api.getBoardByShareCode(joinCode.value);
+        removeBoardFromLocalStorage();
+        ionRouter.push(`/bingo/${board._id}?code=${board.shareCode}`);
+    } catch (error) {
+        console.error('Error joining game:', error);
+        showError('Invalid or expired code');
+    } finally {
+        isLoading.value = false;
+    }
 };
 </script>
 
@@ -160,13 +207,32 @@ ion-icon {
     align-items: center;
 }
 
+.join-code-section {
+    width: 80vw;
+    max-width: 500px;
+    text-align: center;
+}
+
+.join-code-section h5 {
+    margin-bottom: 1rem;
+}
+
+.otp-container {
+    margin-bottom: 1rem;
+}
+
 .input-otp-fill-solid.white-fill {
     --background: white;
     --border-color: var(--ion-color-dark-green);
 }
 
-.join-btn-container {
-    width: 100%;
-    text-align: end;
+.join-btn-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.join-btn-row ion-button {
+    flex: 1;
 }
 </style>
