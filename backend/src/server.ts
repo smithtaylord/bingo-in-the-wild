@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import checkJwt from './middleware/auth';
 import cors from 'cors';
 import userController from './user/user-controller';
-import bingoBoardController from './board/bingo-board-controller';
+import boardRouter from './board';
 
 
 dotenv.config();
@@ -30,7 +30,7 @@ app.get('/protected', checkJwt, (req, res) => {
 
 // Register Controllers
 app.use('/api/user', userController);
-app.use('/api/bingo-board', bingoBoardController);
+app.use('/api/board', boardRouter);
 
 connectToDB().then(() => {
     app.listen(PORT, () => {

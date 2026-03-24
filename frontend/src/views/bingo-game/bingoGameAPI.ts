@@ -13,7 +13,7 @@ function shuffle<T>(array: T[]): T[] {
 export class BingoGameAPI {
     async loadBoard(id: string): Promise<BingoBoard | null> {
         try {
-            const response = await fetch(`api/bingo-board/${id}`);
+            const response = await fetch(`api/board/${id}`);
             if (!response.ok) {
                 if (response.status === 404) {
                     return null;
