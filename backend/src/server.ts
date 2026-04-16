@@ -15,9 +15,14 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:8100';
 
 app.use(express.json());
 
-// Allow CORS from frontend
 app.use(cors({
-    origin: CORS_ORIGIN,
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:8100',
+        'http://localhost:3000',
+        'https://bingo.taylor-smith.xyz',
+        'https://bingo-in-the-wild.github.io',
+    ].concat(CORS_ORIGIN ? CORS_ORIGIN.split(',') : []),
     credentials: true,
 }));
 app.get('/', (req, res) => {
