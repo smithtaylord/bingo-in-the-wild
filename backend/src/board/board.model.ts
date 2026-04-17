@@ -20,4 +20,8 @@ const BingoBoardSchema: Schema = new Schema(
     }
 );
 
+BingoBoardSchema.index({userId: 1});
+BingoBoardSchema.index({category: 1});
+BingoBoardSchema.index({_id: 1, userId: 1});
+
 export const BingoBoard = mongoose.model<IBingoBoard>('BingoBoard', BingoBoardSchema);

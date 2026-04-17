@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {BingoBoard} from '../board.model';
 
 const SHARE_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -7,7 +8,8 @@ const MAX_GENERATION_ATTEMPTS = 5;
 export function createRandomShareCode(): string {
     let code = '';
     for (let i = 0; i < SHARE_CODE_LENGTH; i++) {
-        code += SHARE_CODE_CHARS[Math.floor(Math.random() * SHARE_CODE_CHARS.length)];
+        const randomIndex = crypto.randomInt(SHARE_CODE_CHARS.length);
+        code += SHARE_CODE_CHARS[randomIndex];
     }
     return code;
 }

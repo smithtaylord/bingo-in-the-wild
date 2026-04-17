@@ -51,7 +51,8 @@ export class BingoBoardAPI {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            return await response.json();
+            const data = await response.json();
+            return data.boards ?? data;
         } catch (error) {
             console.error('Error fetching boards:', error);
             throw error;
@@ -76,7 +77,8 @@ export class BingoBoardAPI {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        const data = await response.json();
+        return data.boards ?? data;
     }
 
     async createBingoBoard(input: CreateBoardInput): Promise<BingoBoard> {

@@ -123,7 +123,6 @@ import { BingoGameAPI } from "@/views/bingo-game/bingoGameAPI";
 import BingoCellPopover from "@/views/bingo-game/BingoCellPopover.vue";
 import BingoListOptionsModal from "@/views/bingo-game/BingoListOptionsModal.vue";
 import MiniGrid from "@/views/bingo-game/MiniGrid.vue";
-import JSConfetti from "js-confetti";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 import { BingoBoardAPI } from "@/views/start-game-modal/BingoBoardAPI";
 import { user } from "@/services/auth";
@@ -152,7 +151,6 @@ const flatBoard = computed(() =>
 
 const themeName = ref<string>();
 const api = new BingoGameAPI();
-const jsConfetti = new JSConfetti();
 
 const openShareModal = async () => {
   let code = shareCode.value;
@@ -230,6 +228,7 @@ let _currentPopover: HTMLIonPopoverElement | null = null;
 const toggleCell = (rowIndex: number, colIndex: number) => {
   const cell = board.value[rowIndex][colIndex];
   cell.isMarked = !cell.isMarked;
+  winner.value = checkWinner(board.value);
 
   addBoardToLocalStorage(board.value);
 };
@@ -292,6 +291,8 @@ const shuffleAndResetGame = async () => {
 };
 
 const winningGameAlert = async () => {
+  const JSConfetti = (await import('js-confetti')).default;
+  const jsConfetti = new JSConfetti();
   jsConfetti.addConfetti({
     confettiNumber: 500,
     confettiColors: [
@@ -336,14 +337,6 @@ const invalidThemeId = async () => {
 };
 
 watch(
-  () => board.value,
-  () => {
-    winner.value = checkWinner(board.value);
-  },
-  { deep: true },
-);
-
-watch(
   () => winner.value,
   async () => {
     if (winner.value) {
@@ -375,18 +368,24 @@ const checkAndShowPlayWithFriendsAlert = () => {
 };
 
 const checkOwnership = async () => {
-  const currentUser = user.value;
-  if (!currentUser?.sub) {
-    isOwner.value = false;
-    return;
-  }
-
   try {
     const boardData = await boardApi.getBingoBoardById(props.id);
-    isOwner.value = boardData.userId === currentUser.sub;
-    if (boardData.shareCodeExpiresAt) {
-      boardExpiresAt.value = boardData.shareCodeExpiresAt;
+
+    if (boardData.shareCode) {
+      shareCode.value = boardData.shareCode;
+      boardExpiresAt.value = boardData.shareCodeExpiresAt ?? null;
+    } else {
+      shareCode.value = null;
+      boardExpiresAt.value = null;
     }
+
+    const currentUser = user.value;
+    if (!currentUser?.sub) {
+      isOwner.value = false;
+      return;
+    }
+
+    isOwner.value = boardData.userId === currentUser.sub;
   } catch (error) {
     console.error('Error checking ownership:', error);
     isOwner.value = false;

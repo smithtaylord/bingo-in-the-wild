@@ -14,7 +14,8 @@ router.get('/code/:code', async (req: Request, res: Response) => {
         }
         res.json(board);
     } catch (error) {
-        res.status(500).json({message: 'Error retrieving bingo board', error});
+        console.error('Error retrieving bingo board:', error);
+        res.status(500).json({message: 'Error retrieving bingo board'});
     }
 });
 

@@ -114,9 +114,25 @@ export function addBoardToLocalStorage(bingoCard: BingoCell[][]) {
 }
 
 export function retrieveBoardFromLocalStorage(): BingoCell[][] | null {
-  let bingoCardRaw = localStorage.getItem("bingo-board");
+  const bingoCardRaw = localStorage.getItem("bingo-board");
   if (bingoCardRaw) {
-    return JSON.parse(bingoCardRaw);
+    try {
+      const parsed = JSON.parse(bingoCardRaw);
+      if (
+        Array.isArray(parsed) &&
+        parsed.every(row =>
+          Array.isArray(row) &&
+          row.every((cell: unknown) =>
+            typeof cell === 'object' && cell !== null && typeof (cell as Record<string, unknown>).label === 'string'
+          )
+        )
+      ) {
+        return parsed as BingoCell[][];
+      }
+      localStorage.removeItem("bingo-board");
+    } catch {
+      localStorage.removeItem("bingo-board");
+    }
   }
   return null;
 }

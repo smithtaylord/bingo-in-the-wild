@@ -8,19 +8,30 @@ const boardService = new BoardService();
 
 router.get('/', async (req: Request, res: Response) => {
     try {
-        const boards = await boardService.getAll();
-        res.json(boards);
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+        const result = await boardService.getAll(page, limit);
+        res.json(result);
     } catch (error) {
-        res.status(500).json({message: 'Error retrieving bingo boards', error});
+        console.error('Error retrieving bingo boards:', error);
+        res.status(500).json({message: 'Error retrieving bingo boards'});
     }
 });
 
-router.get('/user/:userId', async (req: Request, res: Response) => {
+router.get('/user/:userId', checkJwt, async (req: Request, res: Response) => {
     try {
-        const boards = await boardService.getByUserId(req.params.userId);
-        res.json(boards);
+        const {sub} = req.auth?.payload || {};
+        if (!sub || sub !== req.params.userId) {
+            res.status(403).json({message: 'You can only view your own boards'});
+            return;
+        }
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+        const result = await boardService.getByUserId(req.params.userId, page, limit);
+        res.json(result);
     } catch (error) {
-        res.status(500).json({message: 'Error retrieving user boards', error});
+        console.error('Error retrieving user boards:', error);
+        res.status(500).json({message: 'Error retrieving user boards'});
     }
 });
 
@@ -33,7 +44,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         }
         res.json(board);
     } catch (error) {
-        res.status(500).json({message: 'Error retrieving bingo board', error});
+        console.error('Error retrieving bingo board:', error);
+        res.status(500).json({message: 'Error retrieving bingo board'});
     }
 });
 
@@ -121,13 +133,21 @@ router.post('/:id/copy', checkJwt, async (req: Request, res: Response) => {
             return;
         }
 
-        const board = await boardService.copy(req.params.id, sub);
+        const board = await boardService.getById(req.params.id);
         if (!board) {
             res.status(404).json({message: 'Board not found'});
             return;
         }
 
-        res.status(201).json(board);
+        const isOwner = board.userId === sub;
+        const isPublicBoard = !!board.category;
+        if (!isOwner && !isPublicBoard) {
+            res.status(403).json({message: 'You do not have permission to copy this board'});
+            return;
+        }
+
+        const copiedBoard = await boardService.copy(req.params.id, sub);
+        res.status(201).json(copiedBoard);
     } catch (error) {
         console.error('Error copying board:', error);
         res.status(500).json({message: 'Error copying bingo board'});

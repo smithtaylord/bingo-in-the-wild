@@ -1,14 +1,6 @@
 import {BingoCell} from "@/views/bingo-game/bingoGameService";
 import {BingoBoard} from "@/views/start-game-modal/BingoBoardAPI";
-
-function shuffle<T>(array: T[]): T[] {
-    const result = [...array];
-    for (let i = result.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [result[i], result[j]] = [result[j], result[i]];
-    }
-    return result;
-}
+import {shuffle} from "@/views/common/functions/shuffle";
 
 export class BingoGameAPI {
     async loadBoard(id: string): Promise<BingoBoard | null> {
