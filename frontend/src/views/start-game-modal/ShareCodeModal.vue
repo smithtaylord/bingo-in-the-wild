@@ -162,7 +162,7 @@ const disableSharing = async () => {
 }
 
 .code-display {
-    background: linear-gradient(135deg, var(--ion-color-dark-green), #3a4f3d);
+    background: linear-gradient(135deg, var(--ion-color-dark-green), var(--ion-color-dark-green-shade));
     padding: 1.5rem 1rem;
     border-radius: var(--radius-lg);
     text-align: center;
@@ -173,7 +173,7 @@ const disableSharing = async () => {
 .share-code {
     font-size: 2rem;
     font-weight: bold;
-    color: white;
+    color: var(--ion-color-dark-green-contrast);
     letter-spacing: 0.2em;
     white-space: nowrap;
 }

@@ -445,7 +445,7 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid white;
+  border: 2px solid var(--ion-color-minty-green);
 }
 
 .marked {
@@ -479,8 +479,8 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
   --width: 33vw;
   --height: 33vw;
   --border-radius: 0;
-  --box-shadow: 2px 2px 4px #000;
-  --background: white;
+  --box-shadow: var(--shadow-md);
+  --background: var(--ion-color-white);
 }
 
 .bingo-list-modal {

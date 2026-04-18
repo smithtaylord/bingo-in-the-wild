@@ -275,7 +275,7 @@ const joinWithCode = async () => {
 }
 
 .input-otp-fill-solid.white-fill {
-    --background: white;
+    --background: var(--ion-color-white);
     --border-color: var(--ion-color-dusty-green);
 }
 

@@ -24,9 +24,10 @@ defineProps<{
     flex-direction: column;
     gap: 1px;
     padding: 4px;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+    background-color: var(--ion-color-dark-green);
+    border: 1px solid var(--ion-color-dark-green);
+    border-radius: 4px;
+    box-shadow: var(--shadow-lg);
 }
 
 .mini-grid-row {
@@ -38,7 +39,7 @@ defineProps<{
 .mini-cell {
     width: 5vh;
     height: 5vh;
-    background-color: #ccc;
+    background-color: var(--ion-color-white);
     border-radius: 1px;
 }
 

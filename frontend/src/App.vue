@@ -1,5 +1,5 @@
 <template>
-  <ion-app>
+  <ion-app :class="`theme-${currentTheme}`">
     <div v-if="isLoading" class="auth-loading">
       <ion-spinner name="crescent" />
     </div>
@@ -16,6 +16,9 @@
 import {IonApp, IonRouterOutlet, IonSpinner} from "@ionic/vue";
 import {isLoading} from "@/services/auth";
 import Menu from "@/views/menu/Menu.vue";
+import {useTheme} from "@/services/theme";
+
+const {currentTheme} = useTheme();
 </script>
 
 <style scoped>
