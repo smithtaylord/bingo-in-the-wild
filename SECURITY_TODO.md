@@ -188,6 +188,14 @@
 - [ ] **Rotate MongoDB credentials** that were in `.env` file
   - The credentials in `backend/.env` may have been exposed
   - Rotate password immediately for production
+  - Steps: See "Security: Rotate Your MongoDB Password" section in DEPLOYMENT_TODO.md
+  - After rotating, update the `MONGO_URI` env var in: (1) Azure Container App, (2) GitHub Secrets
+
+- [ ] **Remove `.env.production` from git and configure via Azure SWA**
+  - Add `frontend/.env.production` to `.gitignore`
+  - Remove it from git tracking: `git rm --cached frontend/.env.production`
+  - Configure `VITE_API_URL`, `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE` as Azure Static Web App app settings or GitHub Actions secrets
+  - This way env values are injected at build time, not stored in the repo
 
 ### Environment Variables (Production)
 Ensure these are set in production:

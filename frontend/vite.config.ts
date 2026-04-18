@@ -19,7 +19,7 @@ export default defineConfig({
         environment: "jsdom",
     },
     build: {
-        outDir: "../docs",
+        outDir: "dist",
     },
     server: {
         historyApiFallback: true,
