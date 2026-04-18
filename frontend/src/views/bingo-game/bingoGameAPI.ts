@@ -2,10 +2,12 @@ import {BingoCell} from "@/views/bingo-game/bingoGameService";
 import {BingoBoard} from "@/views/start-game-modal/BingoBoardAPI";
 import {shuffle} from "@/views/common/functions/shuffle";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export class BingoGameAPI {
     async loadBoard(id: string): Promise<BingoBoard | null> {
         try {
-            const response = await fetch(`api/board/${id}`);
+            const response = await fetch(`${API_BASE_URL}/api/board/${id}`);
             if (!response.ok) {
                 if (response.status === 404) {
                     return null;

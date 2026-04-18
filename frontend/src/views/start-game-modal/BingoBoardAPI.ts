@@ -34,6 +34,8 @@ export const SPORTS_CATEGORY = 'Sports';
 export const SOCIAL_CATEGORY = 'Social';
 export const LOCATION_CATEGORY = 'Location';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export class BingoBoardAPI {
     private async getAuthHeaders(): Promise<HeadersInit> {
         const token = await import('@/services/auth').then(m => m.getAccessToken());
@@ -45,7 +47,7 @@ export class BingoBoardAPI {
 
     async getBingoBoards(): Promise<BingoBoard[]> {
         try {
-            const response = await fetch('api/board');
+            const response = await fetch(`${API_BASE_URL}/api/board`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -60,7 +62,7 @@ export class BingoBoardAPI {
     }
 
     async getBingoBoardById(id: string): Promise<BingoBoard> {
-        const response = await fetch(`api/board/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/board/${id}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -71,7 +73,7 @@ export class BingoBoardAPI {
 
     async getBingoBoardsByUser(userId: string): Promise<BingoBoard[]> {
         const headers = await this.getAuthHeaders();
-        const response = await fetch(`api/board/user/${userId}`, {headers});
+        const response = await fetch(`${API_BASE_URL}/api/board/user/${userId}`, {headers});
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -83,7 +85,7 @@ export class BingoBoardAPI {
 
     async createBingoBoard(input: CreateBoardInput): Promise<BingoBoard> {
         const headers = await this.getAuthHeaders();
-        const response = await fetch('api/board', {
+        const response = await fetch(`${API_BASE_URL}/api/board`, {
             method: 'POST',
             headers,
             body: JSON.stringify(input),
@@ -99,7 +101,7 @@ export class BingoBoardAPI {
 
     async updateBingoBoard(id: string, input: UpdateBoardInput): Promise<BingoBoard> {
         const headers = await this.getAuthHeaders();
-        const response = await fetch(`api/board/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/board/${id}`, {
             method: 'PUT',
             headers,
             body: JSON.stringify(input),
@@ -115,7 +117,7 @@ export class BingoBoardAPI {
 
     async deleteBingoBoard(id: string): Promise<void> {
         const headers = await this.getAuthHeaders();
-        const response = await fetch(`api/board/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/board/${id}`, {
             method: 'DELETE',
             headers,
         });
@@ -127,7 +129,7 @@ export class BingoBoardAPI {
     }
 
     async getBoardByShareCode(code: string): Promise<BingoBoard> {
-        const response = await fetch(`api/board/code/${code}`);
+        const response = await fetch(`${API_BASE_URL}/api/board/code/${code}`);
 
         if (!response.ok) {
             const error = await response.json();
@@ -139,7 +141,7 @@ export class BingoBoardAPI {
 
     async generateShareCode(boardId: string): Promise<ShareCodeResult> {
         const headers = await this.getAuthHeaders();
-        const response = await fetch(`api/board/${boardId}/share`, {
+        const response = await fetch(`${API_BASE_URL}/api/board/${boardId}/share`, {
             method: 'POST',
             headers,
         });
@@ -154,7 +156,7 @@ export class BingoBoardAPI {
 
     async disableShareCode(boardId: string): Promise<void> {
         const headers = await this.getAuthHeaders();
-        const response = await fetch(`api/board/${boardId}/share`, {
+        const response = await fetch(`${API_BASE_URL}/api/board/${boardId}/share`, {
             method: 'DELETE',
             headers,
         });
@@ -167,7 +169,7 @@ export class BingoBoardAPI {
 
     async copyBoard(boardId: string): Promise<BingoBoard> {
         const headers = await this.getAuthHeaders();
-        const response = await fetch(`api/board/${boardId}/copy`, {
+        const response = await fetch(`${API_BASE_URL}/api/board/${boardId}/copy`, {
             method: 'POST',
             headers,
         });
