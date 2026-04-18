@@ -150,7 +150,7 @@ const disableSharing = async () => {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 1rem 1.5rem 0;
+    padding: 1.5rem 1.5rem 0;
 }
 
 .share-label {
@@ -158,28 +158,32 @@ const disableSharing = async () => {
     color: var(--ion-color-dark-green);
     font-size: 1.1rem;
     margin: 0;
+    font-family: 'Fredoka', sans-serif;
 }
 
 .code-display {
-    background-color: var(--ion-color-dark-green);
+    background: linear-gradient(135deg, var(--ion-color-dark-green), var(--ion-color-dark-green-shade));
     padding: 1.5rem 1rem;
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     text-align: center;
     margin: 0.5rem 1rem;
+    box-shadow: var(--shadow-md);
 }
 
 .share-code {
     font-size: 2rem;
     font-weight: bold;
-    color: white;
+    color: var(--ion-color-dark-green-contrast);
     letter-spacing: 0.2em;
     white-space: nowrap;
 }
 
 .expiry-text {
     text-align: center;
-    color: var(--ion-color-medium);
+    color: var(--ion-color-dark-green);
     margin: 0;
+    opacity: 0.7;
+    font-size: 0.85rem;
 }
 
 .share-content > ion-button {
@@ -195,9 +199,5 @@ const disableSharing = async () => {
 
 .small-buttons ion-button {
     flex: 1;
-}
-
-.go-to-game {
-    margin-top: 1.5rem;
 }
 </style>

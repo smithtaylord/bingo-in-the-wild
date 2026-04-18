@@ -22,3 +22,16 @@ import {
 
 defineProps<{ title: string }>();
 </script>
+
+<style scoped>
+ion-toolbar {
+    --min-height: 52px;
+}
+
+ion-title h3 {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin: 0;
+}
+</style>
