@@ -7,6 +7,20 @@
           <h4>Theme: {{ themeName }}</h4>
         </ion-text>
 
+        <div v-if="shareCode" class="share-code-row" @click="openShareModal">
+          <span class="share-code-label">Share Code:</span>
+          <span class="share-code-value">{{ shareCode }}</span>
+          <ion-button size="small" color="dark-green" shape="round">
+            Details
+          </ion-button>
+        </div>
+
+        <div v-else-if="isOwner" class="share-code-row">
+          <ion-button size="small" color="coral" shape="round" @click="openShareModal">
+            Share Game
+          </ion-button>
+        </div>
+
         <div class="bingo-grid ion-margin-bottom">
           <div v-for="letter in 'BINGO'" :key="letter" class="bingo-header">
             <div class="bingo-box-header">
@@ -88,13 +102,15 @@ import {
   IonModal,
   IonPage,
   IonText,
+  modalController,
   onIonViewWillEnter,
   popoverController,
   toastController,
   useIonRouter,
 } from "@ionic/vue";
 import { home, list, trashBin, warning } from "ionicons/icons";
-import { computed, Ref, ref, watch } from "vue";
+import { computed, onUnmounted, Ref, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import {
   addBoardToLocalStorage,
   BingoCell,
@@ -107,13 +123,21 @@ import { BingoGameAPI } from "@/views/bingo-game/bingoGameAPI";
 import BingoCellPopover from "@/views/bingo-game/BingoCellPopover.vue";
 import BingoListOptionsModal from "@/views/bingo-game/BingoListOptionsModal.vue";
 import MiniGrid from "@/views/bingo-game/MiniGrid.vue";
-import JSConfetti from "js-confetti";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
+import { BingoBoardAPI } from "@/views/start-game-modal/BingoBoardAPI";
+import { user } from "@/services/auth";
+import { showError } from "@/services/toast";
+import ShareCodeModal from "@/views/start-game-modal/ShareCodeModal.vue";
 
 const props = defineProps<{ id: string }>();
+const route = useRoute();
 const ionRouter = useIonRouter();
 const winner = ref<boolean>(false);
 const board: Ref<BingoCell[][]> = ref([]);
+
+const shareCode = ref<string | null>(null);
+const isOwner = ref<boolean>(false);
+const boardApi = new BingoBoardAPI();
 
 const flatBoard = computed(() =>
   board.value.flatMap((row, rowIndex) =>
@@ -127,14 +151,84 @@ const flatBoard = computed(() =>
 
 const themeName = ref<string>();
 const api = new BingoGameAPI();
-const jsConfetti = new JSConfetti();
+
+const openShareModal = async () => {
+  let code = shareCode.value;
+  let expiresAt = boardExpiresAt.value;
+
+  if (isOwner.value && !code) {
+    try {
+      const result = await boardApi.generateShareCode(props.id);
+      code = result.shareCode;
+      expiresAt = result.expiresAt;
+      shareCode.value = code;
+      boardExpiresAt.value = expiresAt;
+    } catch (error) {
+      console.error('Error generating share code:', error);
+      showError('Failed to generate share code');
+      return;
+    }
+  }
+
+  if (!code) return;
+
+  const modal = await modalController.create({
+    component: ShareCodeModal,
+    componentProps: {
+      boardId: props.id,
+      shareCode: code,
+      expiresAt: expiresAt || new Date().toISOString(),
+      isOwner: isOwner.value,
+    },
+    breakpoints: [0, 0.55, 1],
+    initialBreakpoint: 0.55,
+  });
+
+  await modal.present();
+
+  modal.onDidDismiss().then(({data}) => {
+    if (data?.shareCode) {
+      shareCode.value = data.shareCode;
+    }
+    if (data?.expiresAt) {
+      boardExpiresAt.value = data.expiresAt;
+    }
+    if (data?.action === 'disabled') {
+      shareCode.value = null;
+    }
+  });
+};
+
+const showPlayWithFriendsAlert = async () => {
+  const alert = await alertController.create({
+    header: 'Want to play with friends?',
+    buttons: [
+      {
+        text: 'Share Game',
+        handler: () => {
+          openShareModal();
+        },
+      },
+      {
+        text: 'Play Solo',
+        role: 'cancel',
+      },
+    ],
+  });
+
+  await alert.present();
+};
+
+const boardExpiresAt: Ref<string | null> = ref(null);
 
 let pressTimer: number | null = null;
-let currentPopover: HTMLIonPopoverElement | null = null;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let _currentPopover: HTMLIonPopoverElement | null = null;
 
 const toggleCell = (rowIndex: number, colIndex: number) => {
   const cell = board.value[rowIndex][colIndex];
   cell.isMarked = !cell.isMarked;
+  winner.value = checkWinner(board.value);
 
   addBoardToLocalStorage(board.value);
 };
@@ -151,7 +245,7 @@ const startPress = (event: Event, label: string) => {
       arrow: false,
       side: "top",
     });
-    currentPopover = popover;
+    _currentPopover = popover;
     await popover.present();
   }, 500);
 };
@@ -163,6 +257,10 @@ const cancelPress = () => {
   }
 };
 
+onUnmounted(() => {
+  cancelPress();
+});
+
 const resetGame = () => {
   removeBoardFromLocalStorage();
   clearBoard(board.value);
@@ -173,8 +271,8 @@ const goHome = () => {
 };
 
 const createBoard = async () => {
-  const gameBoard: BingoCell[][] | null = api.createGameBoard(
-    parseInt(props.id),
+  const gameBoard: BingoCell[][] | null = await api.createGameBoard(
+    props.id,
   );
 
   if (!gameBoard) {
@@ -182,6 +280,8 @@ const createBoard = async () => {
     return;
   }
 
+  const loadedBoard = await api.loadBoard(props.id);
+  themeName.value = api.getThemeName(loadedBoard || null);
   board.value = gameBoard;
 };
 
@@ -191,6 +291,8 @@ const shuffleAndResetGame = async () => {
 };
 
 const winningGameAlert = async () => {
+  const JSConfetti = (await import('js-confetti')).default;
+  const jsConfetti = new JSConfetti();
   jsConfetti.addConfetti({
     confettiNumber: 500,
     confettiColors: [
@@ -235,14 +337,6 @@ const invalidThemeId = async () => {
 };
 
 watch(
-  () => board.value,
-  () => {
-    winner.value = checkWinner(board.value);
-  },
-  { deep: true },
-);
-
-watch(
   () => winner.value,
   async () => {
     if (winner.value) {
@@ -252,16 +346,51 @@ watch(
 );
 
 onIonViewWillEnter(async () => {
-  themeName.value = api.getThemeName(parseInt(props.id));
+  shareCode.value = route.query.code as string | null;
 
   const savedGameBoard = retrieveBoardFromLocalStorage();
   if (savedGameBoard) {
     board.value = savedGameBoard;
+    await checkOwnership();
+    checkAndShowPlayWithFriendsAlert();
     return;
   }
 
   await createBoard();
+  await checkOwnership();
+  checkAndShowPlayWithFriendsAlert();
 });
+
+const checkAndShowPlayWithFriendsAlert = () => {
+  if (isOwner.value && !shareCode.value) {
+    showPlayWithFriendsAlert();
+  }
+};
+
+const checkOwnership = async () => {
+  try {
+    const boardData = await boardApi.getBingoBoardById(props.id);
+
+    if (boardData.shareCode) {
+      shareCode.value = boardData.shareCode;
+      boardExpiresAt.value = boardData.shareCodeExpiresAt ?? null;
+    } else {
+      shareCode.value = null;
+      boardExpiresAt.value = null;
+    }
+
+    const currentUser = user.value;
+    if (!currentUser?.sub) {
+      isOwner.value = false;
+      return;
+    }
+
+    isOwner.value = boardData.userId === currentUser.sub;
+  } catch (error) {
+    console.error('Error checking ownership:', error);
+    isOwner.value = false;
+  }
+};
 
 // List View
 const isModalOpen = ref(false);
@@ -378,5 +507,31 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
 .bingo-card-container {
   max-width: 600px;
   margin: auto;
+}
+
+.share-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.25rem 1rem;
+  margin: 0 auto 0.5rem;
+  max-width: 400px;
+}
+
+.share-code-label {
+  color: var(--ion-color-dark-green);
+  font-size: 0.9rem;
+}
+
+.share-code-value {
+  color: var(--ion-color-dark-green);
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  font-size: 1rem;
+}
+
+.share-code-row ion-button {
+  margin: 0;
 }
 </style>

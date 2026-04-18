@@ -1,37 +1,62 @@
-import {GameTheme, MOCK_GAME_THEMES} from "@/views/mock-game-themes/mockGameThemes";
-import {shuffle} from "@/views/common/functions/shuffle";
 import {BingoCell} from "@/views/bingo-game/bingoGameService";
+import {BingoBoard} from "@/views/start-game-modal/BingoBoardAPI";
+import {shuffle} from "@/views/common/functions/shuffle";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export class BingoGameAPI {
-    getThemeName(id: number){
-        return MOCK_GAME_THEMES.find(theme => theme.id == id)?.name;
-    }
-    
-    createGameBoard(id: number): BingoCell[][] | null{
-        const theme: GameTheme | undefined = MOCK_GAME_THEMES.find(theme => theme.id == id)
-        if(!theme){
+    async loadBoard(id: string): Promise<BingoBoard | null> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/board/${id}`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return null;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching board:', error);
             return null;
         }
-        const shuffledLabels: string[] = shuffle(theme?.labels).slice(0,24)
+    }
 
-        let board: BingoCell[][] = [];
+    getThemeName(board: BingoBoard | null): string | undefined {
+        return board?.name;
+    }
+
+    async createGameBoard(id: string): Promise<BingoCell[][] | null> {
+        const board = await this.loadBoard(id);
+        if (!board) {
+            return null;
+        }
+
+        if (!board.items || board.items.length < 24) {
+            console.error('Board does not have enough items (need at least 24)');
+            return null;
+        }
+
+        const shuffledLabels: string[] = shuffle(board.items).slice(0, 24);
+        const gameBoard: BingoCell[][] = [];
         let labelIndex = 0;
 
         for (let row = 0; row < 5; row++) {
             const boardRow: BingoCell[] = [];
             for (let col = 0; col < 5; col++) {
                 if (row === 2 && col === 2) {
-                    // center free space
-                    boardRow.push({ label: theme.freeSpaceLabel ?? "Free", isMarked: true, isFreeSpace: true }); 
+                    boardRow.push({
+                        label: board.freeSpace || "Free",
+                        isMarked: true,
+                        isFreeSpace: true
+                    });
                 } else {
-                    boardRow.push({ label: shuffledLabels[labelIndex], isMarked: false });
+                    boardRow.push({label: shuffledLabels[labelIndex], isMarked: false});
                     labelIndex++;
                 }
             }
-            board.push(boardRow);
+            gameBoard.push(boardRow);
         }
-        
-        return board;
-        
+
+        return gameBoard;
     }
 }

@@ -111,12 +111,29 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
 }
 
+.justify-content-between {
+    justify-content: space-between;
+}
+
 .align-items-center {
     align-items: center;
 }
 
+.align-items-baseline {
+    align-items: baseline;
+}
+
 .shadow {
     box-shadow: 1px 1px 2px var(--ion-color-dark-green);
+}
+
+ion-tab-bar ion-tab-button.tab-selected::part(icon),
+ion-tab-bar ion-tab-button.tab-selected {
+    color: var(--ion-color-minty-green) !important;
+}
+
+ion-alert {
+    --ion-color-primary: var(--ion-color-dark-green);
 }
 
 

@@ -1,8 +1,5 @@
 import { createRouter } from "@ionic/vue-router";
-import { createWebHashHistory, RouteRecordRaw } from "vue-router";
-import HomePage from "@/views/home/HomePage.vue";
-import BingoPage from "@/views/bingo-game/BingoPage.vue";
-import AboutPage from "@/views/about/AboutPage.vue";
+import { createWebHistory, RouteRecordRaw} from "vue-router";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -12,23 +9,23 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/home",
     name: "Home",
-    component: HomePage,
+    component: () => import("@/views/home/HomePage.vue"),
   },
   {
     path: "/about",
     name: "About",
-    component: AboutPage,
+    component: () => import("@/views/about/AboutPage.vue"),
   },
   {
     path: "/bingo/:id",
     name: "Bingo",
-    component: BingoPage,
+    component: () => import("@/views/bingo-game/BingoPage.vue"),
     props: true,
   },
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(),
   routes,
 });
 
