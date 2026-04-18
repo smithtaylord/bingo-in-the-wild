@@ -1,6 +1,8 @@
 import {ref} from 'vue';
 import {Auth0Client, createAuth0Client, User} from '@auth0/auth0-spa-js';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 const isAuthenticated = ref(false);
 const isLoading = ref(true);
 const user = ref<User | null>(null);
@@ -74,7 +76,7 @@ async function syncUserWithBackend() {
     if (import.meta.env.DEV) {
         console.log('Syncing user with backend...');
     }
-    const response = await fetch('api/user/login', {
+    const response = await fetch(`${API_BASE_URL}/api/user/login`, {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${token}`,

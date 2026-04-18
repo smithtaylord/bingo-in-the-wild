@@ -20,29 +20,29 @@ defineProps<{
 
 <style scoped>
 .mini-grid-board {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 4px;
-  background-color: white;
-  border: 1px solid #ddd;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 4px;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
 }
 
 .mini-grid-row {
-  display: flex;
-  flex-direction: row;
-  gap: 1px;
+    display: flex;
+    flex-direction: row;
+    gap: 1px;
 }
 
 .mini-cell {
-  width: 5vh;
-  height: 5vh;
-  background-color: #ccc;
-  border-radius: 1px;
+    width: 5vh;
+    height: 5vh;
+    background-color: #ccc;
+    border-radius: 1px;
 }
 
 .mini-cell.marked {
-  background-color: var(--ion-color-coral);
+    background-color: var(--ion-color-coral);
 }
 </style>

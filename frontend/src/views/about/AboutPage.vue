@@ -93,3 +93,34 @@ import {
 } from "@ionic/vue";
 import MenuPageHeader from "@/views/menu/MenuPageHeader.vue";
 </script>
+
+<style scoped>
+ion-card {
+    --border-radius: var(--radius-lg);
+    margin: 0.75rem 0;
+}
+
+ion-card-header {
+    padding-bottom: 0.5rem;
+}
+
+ion-card-content {
+    padding-top: 0.5rem;
+}
+
+ion-card-title h2 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+ion-card-title h5 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+ion-text p {
+    line-height: 1.6;
+}
+</style>

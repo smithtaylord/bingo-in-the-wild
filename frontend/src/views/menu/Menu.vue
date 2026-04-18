@@ -2,7 +2,7 @@
   <ion-menu content-id="main-content" type="overlay">
     <ion-header>
       <ion-toolbar color="coral">
-        <ion-title color="white">Menu</ion-title>
+        <ion-title color="dark-green">Menu</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content color="white">
@@ -80,4 +80,24 @@ const loggedIn = computed(() => isLoggedIn());
 
 </script>
 
-<style scoped></style>
+<style scoped>
+ion-toolbar {
+    --background: linear-gradient(135deg, var(--ion-color-coral), #ff8a65);
+}
+
+ion-title {
+    color: var(--ion-color-dark-green);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+}
+
+ion-item {
+    --border-radius: var(--radius-sm);
+    margin: 2px 0;
+}
+
+ion-item ion-icon {
+    margin-right: 12px;
+    font-size: 1.3rem;
+}
+</style>

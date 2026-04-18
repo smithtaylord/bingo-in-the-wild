@@ -3,96 +3,101 @@
     <MenuPageHeader title="Home"/>
     <ion-content class="ion-padding" fullscreen>
       <div
-          class="d-flex flex-column justify-content-center align-items-center h-100"
+          class="home-container"
       >
-        <div class="ion-padding-bottom ion-margin-bottom">
-          <ion-icon :icon="leafOutline"/>
-          <ion-icon :icon="leafOutline" color="coral"/>
-          <ion-icon :icon="roseOutline"/>
-          <ion-icon
-              :icon="leafOutline"
-              color="coral"
-              style="transform: scaleX(-1)"
-          />
-          <ion-icon :icon="leafOutline" style="transform: scaleX(-1)"/>
-        </div>
-
-        <ion-text class="ion-padding-top ion-margin-top" color="dark-green">
-          <h1 class="home-title">Bingo in the Wild</h1>
-        </ion-text>
-
-        <ion-button
-            class="home-btn"
-            color="dusty-green"
-            shape="round"
-            size="large"
-            @click="startGame"
-        >
-          <span class="align-left">
-            <ion-icon slot="start" :icon="trophy" size="large"/>
-            Start a New Game</span>
-        </ion-button>
-
-        <ion-button
-            v-if="!showJoinOptions"
-            class="home-btn"
-            color="dusty-green"
-            shape="round"
-            size="large"
-            @click="toggleJoinOptions"
-        >
-          <span class="align-left">
-            <ion-icon slot="start" :icon="addOutline" size="large"/>
-            Join a Game</span>
-        </ion-button>
-
-        <div v-else class="join-code-section">
-          <ion-text align="center" class="ion-padding-top ion-margin-top" color="dark-green">
-            <h5>Enter Code to Join Game</h5>
-          </ion-text>
-
-          <div class="otp-container">
-            <ion-input-otp
-                v-model="joinCode"
-                type="text"
-                :length="6"
-                class="white-fill"
-                color="dark"
-                fill="solid"
-            ></ion-input-otp>
-          </div>
-
-          <div class="join-btn-row">
-            <ion-button
-                color="medium"
-                shape="round"
-                @click="toggleJoinOptions"
-            >
-              Cancel
-            </ion-button>
-            <ion-button
+        <div class="home-hero">
+          <div class="leaf-row">
+            <ion-icon :icon="leafOutline"/>
+            <ion-icon :icon="leafOutline" color="coral"/>
+            <ion-icon :icon="roseOutline"/>
+            <ion-icon
+                :icon="leafOutline"
                 color="coral"
-                shape="round"
-                :disabled="joinCode.length !== 6 || isLoading"
-                @click="joinWithCode"
-            >
-              <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
-              <span v-else>Join Game</span>
-            </ion-button>
+                style="transform: scaleX(-1)"
+            />
+            <ion-icon :icon="leafOutline" style="transform: scaleX(-1)"/>
           </div>
+
+          <ion-text color="dark-green">
+            <h1 class="home-title">Bingo in the Wild</h1>
+            <p class="home-subtitle">Spot it. Mark it. Win it.</p>
+          </ion-text>
         </div>
 
-        <ion-button v-if="!loggedIn && !showJoinOptions"
-                    class="home-btn"
-                    color="coral"
-                    shape="round"
-                    size="large"
-                    @click="login"
-        >
-          <span class="align-left">
-            <ion-icon slot="start" :icon="logInOutline" size="large"/>
-            Log in</span>
-        </ion-button>
+        <div class="home-actions">
+          <ion-button
+              class="home-btn"
+              color="dusty-green"
+              shape="round"
+              size="large"
+              @click="startGame"
+          >
+            <span class="align-left">
+              <ion-icon slot="start" :icon="trophy" size="large"/>
+              Start a New Game</span>
+          </ion-button>
+
+          <ion-button
+              v-if="!showJoinOptions"
+              class="home-btn"
+              color="dusty-green"
+              shape="round"
+              size="large"
+              @click="toggleJoinOptions"
+          >
+            <span class="align-left">
+              <ion-icon slot="start" :icon="addOutline" size="large"/>
+              Join a Game</span>
+          </ion-button>
+
+          <div v-else class="join-code-section nature-card">
+            <ion-text align="center" color="dark-green">
+              <h5>Enter Code to Join Game</h5>
+            </ion-text>
+
+            <div class="otp-container">
+              <ion-input-otp
+                  v-model="joinCode"
+                  type="text"
+                  :length="6"
+                  class="white-fill"
+                  color="dark"
+                  fill="solid"
+              ></ion-input-otp>
+            </div>
+
+            <div class="join-btn-row">
+              <ion-button
+                  color="medium"
+                  shape="round"
+                  @click="toggleJoinOptions"
+              >
+                Cancel
+              </ion-button>
+              <ion-button
+                  color="coral"
+                  shape="round"
+                  :disabled="joinCode.length !== 6 || isLoading"
+                  @click="joinWithCode"
+              >
+                <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
+                <span v-else>Join Game</span>
+              </ion-button>
+            </div>
+          </div>
+
+          <ion-button v-if="!loggedIn && !showJoinOptions"
+                      class="home-btn"
+                      color="coral"
+                      shape="round"
+                      size="large"
+                      @click="login"
+          >
+            <span class="align-left">
+              <ion-icon slot="start" :icon="logInOutline" size="large"/>
+              Log in</span>
+          </ion-button>
+        </div>
       </div>
     </ion-content>
   </ion-page>
@@ -179,20 +184,62 @@ const joinWithCode = async () => {
 </script>
 
 <style scoped>
-.home-title {
-    font-weight: bolder;
-    font-size: 30pt;
-    margin-bottom: 50px;
+.home-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
+    gap: 2.5rem;
 }
 
-ion-icon {
-    font-size: 64px;
+.home-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.leaf-row {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.leaf-row ion-icon {
+    font-size: 56px;
+    filter: drop-shadow(0 2px 4px rgba(43, 58, 45, 0.15));
+}
+
+.home-title {
+    font-weight: bolder;
+    font-size: 32pt;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.home-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--ion-color-dark-green);
+    opacity: 0.7;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.home-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 0.625rem;
 }
 
 .home-btn {
     width: 80vw;
     max-width: 500px;
-    margin-bottom: 10px;
+    --box-shadow: var(--shadow-md);
 }
 
 .home-btn ion-icon {
@@ -208,28 +255,35 @@ ion-icon {
 }
 
 .join-code-section {
-    width: 80vw;
+    width: 85vw;
     max-width: 500px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
 
 .join-code-section h5 {
-    margin-bottom: 1rem;
+    margin: 0;
+    font-family: 'Fredoka', sans-serif;
 }
 
 .otp-container {
-    margin-bottom: 1rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
 }
 
 .input-otp-fill-solid.white-fill {
     --background: white;
-    --border-color: var(--ion-color-dark-green);
+    --border-color: var(--ion-color-dusty-green);
 }
 
 .join-btn-row {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
+    width: 100%;
 }
 
 .join-btn-row ion-button {
