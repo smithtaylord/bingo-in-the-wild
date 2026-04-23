@@ -18,14 +18,13 @@
   - `POST /api/board/:id/copy` allows copying any user's private board
   - Should verify ownership before allowing copy
 
-- [ ] **Add rate limiting with `express-rate-limit`**
-  - Critical for: `POST /api/user/login`
-  - General limit for all API routes (e.g., 100 req/min per IP)
+- [x] **Add rate limiting with `express-rate-limit`**
+  - General limit: 100 req/15min per IP
+  - Login limit: 10 req/15min per IP
 
 ### Security Headers & Error Handling
-- [ ] **Install and configure `helmet` middleware**
-  - Add to `backend/src/server.ts`
-  - Sets CSP, X-Content-Type-Options, X-Frame-Options, HSTS, etc.
+- [x] **Install and configure `helmet` middleware**
+  - Added to `backend/src/server.ts`
 
 - [ ] **Remove error objects from API responses**
   - `board.routes.ts:14-15` — remove `error` from response
@@ -35,32 +34,29 @@
   - `user-controller.ts` — sanitize `err.message` before sending
 
 ### Database Performance
-- [ ] **Add MongoDB indexes to BingoBoard schema**
+- [x] **Add MongoDB indexes to BingoBoard schema**
   - Index on `userId` for user's board queries
   - Index on `category` for filtered public board queries
   - Compound index on `{_id, userId}` for share code generation
 
-- [ ] **Add pagination to list endpoints**
-  - `GET /api/board` — add `limit`, `skip`, `page` params
-  - `GET /api/board/user/:userId` — add `limit`, `skip` params
+- [x] **Add pagination to list endpoints**
+  - `GET /api/board` — supports `page` and `limit` params
+  - `GET /api/board/user/:userId` — supports `page` and `limit` params
 
 ---
 
 ## HIGH
 
 ### Cryptography & Tokens
-- [ ] **Replace `Math.random()` with `crypto.randomInt()` for share codes**
+- [x] **Replace `Math.random()` with `crypto.randomInt()` for share codes**
   - `backend/src/board/utils/share-code.util.ts:10`
-  - Use a cryptographically secure PRNG
 
 ### Performance Optimizations
-- [ ] **Add response compression middleware**
-  - Install `compression` package
-  - Add to `backend/src/server.ts`
+- [x] **Add response compression middleware**
+  - `compression` package added to `backend/src/server.ts`
 
-- [ ] **Add field selection (`.select()`) to queries**
-  - List endpoints should only return needed fields, not full documents
-  - Avoid returning `items` array for list views
+- [x] **Add field selection (`.select()`) to queries**
+  - List endpoints now use `.select('-items')` to exclude items array
 
 - [ ] **Implement route-level code splitting (lazy loading)**
   - `frontend/src/router/index.ts` — change to dynamic imports
@@ -70,15 +66,7 @@
 
 ### Dependency Security
 - [ ] **Run `npm audit fix` in backend**
-  - Fix 8 vulnerable dependencies:
-    - `jws` (CVE — improperly verifies HMAC signature)
-    - `path-to-regexp` (DoS via sequential optional groups)
-    - `minimatch` (ReDoS)
-    - `picomatch` (ReDoS)
-    - `body-parser` (DoS when URL encoding)
-    - `brace-expansion` (memory exhaustion)
-    - `qs` (DoS via arrayLimit bypass)
-    - `diff` (DoS in parsePatch)
+  - Fix vulnerable dependencies (jws, path-to-regexp, minimatch, etc.)
 
 ### Concurrency
 - [ ] **Fix share code race condition**
@@ -102,13 +90,12 @@
   - Extract `email` from decoded JWT, not `req.body`
 
 ### CORS & Proxies
-- [ ] **Validate CORS_ORIGIN environment variable**
-  - Ensure production explicitly sets the frontend domain
-  - Consider an allowlist approach if multiple origins needed
+- [x] **Validate CORS_ORIGIN environment variable**
+  - Removed stale `bingo-in-the-wild.github.io` origin
+  - Production domains set via `CORS_ORIGIN` env var
 
-- [ ] **Configure `trust proxy` setting**
-  - Add `app.set('trust proxy', 1)` to `backend/src/server.ts`
-  - Required for correct `req.ip` behind reverse proxy
+- [x] **Configure `trust proxy` setting**
+  - `app.set('trust proxy', 1)` added to `backend/src/server.ts`
 
 ### Frontend Performance
 - [ ] **Remove deep watcher on board state**
@@ -154,19 +141,17 @@
   - Only instantiate when user wins
 
 ### Server Configuration
-- [ ] **Add graceful shutdown handlers**
-  - `backend/src/server.ts`
-  - Handle `SIGTERM`/`SIGINT` to close DB connections
+- [x] **Add graceful shutdown handlers**
+  - SIGTERM/SIGINT handlers added to `backend/src/server.ts`
 
-- [ ] **Add explicit request body size limit**
-  - `express.json({ limit: '100kb' })` — already default, make explicit
+- [x] **Add explicit request body size limit**
+  - `express.json({ limit: '100kb' })` in `backend/src/server.ts`
 
 - [ ] **Remove unused asset**
   - `frontend/public/monstera.png` (~47KB) — verify not used, remove if unnecessary
 
-- [ ] **Consider removing `@vitejs/plugin-legacy`**
-  - `frontend/vite.config.ts:11`
-  - Capacitor app may not need legacy browser bundle
+- [x] **Remove `@vitejs/plugin-legacy`**
+  - Removed from `frontend/vite.config.ts` — not needed for Capacitor app
 
 ### Security (Low Priority)
 - [ ] **Validate localStorage data on parse**
@@ -185,17 +170,8 @@
 ## NOTES
 
 ### Secrets Management
-- [ ] **Rotate MongoDB credentials** that were in `.env` file
-  - The credentials in `backend/.env` may have been exposed
-  - Rotate password immediately for production
-  - Steps: See "Security: Rotate Your MongoDB Password" section in DEPLOYMENT_TODO.md
-  - After rotating, update the `MONGO_URI` env var in: (1) Azure Container App, (2) GitHub Secrets
-
-- [ ] **Remove `.env.production` from git and configure via Azure SWA**
-  - Add `frontend/.env.production` to `.gitignore`
-  - Remove it from git tracking: `git rm --cached frontend/.env.production`
-  - Configure `VITE_API_URL`, `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE` as Azure Static Web App app settings or GitHub Actions secrets
-  - This way env values are injected at build time, not stored in the repo
+- [x] **Keep `.env.production` in repo** — Auth0 client IDs are public by design, no need to overcomplicate CI/CD
+- [ ] **Rotate MongoDB credentials** if any were exposed
 
 ### Environment Variables (Production)
 Ensure these are set in production:
@@ -216,9 +192,9 @@ VITE_AUTH0_AUDIENCE=<public>
 
 ## QUICK WINS (Can fix in ~30 min each)
 
-1. `npm audit fix` in backend — fixes 8 vulnerable packages
-2. Add `helmet` to backend — one line in server.ts
+1. ~~`npm audit fix` in backend~~ — still pending
+2. ~~Add `helmet` to backend~~ — done
 3. Remove `error` from 4 catch blocks in board routes
 4. Change router to lazy-loaded dynamic imports
 5. Remove deep watcher, call checkWinner in toggleCell
-6. Add `trust proxy` and `compression` to Express
+6. ~~Add `trust proxy` and `compression` to Express~~ — done

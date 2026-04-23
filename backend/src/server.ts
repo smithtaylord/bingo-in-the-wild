@@ -28,7 +28,6 @@ app.use(cors({
         'http://localhost:8100',
         'http://localhost:3000',
         'https://bingo.taylor-smith.xyz',
-        'https://bingo-in-the-wild.github.io',
     ].concat(CORS_ORIGIN ? CORS_ORIGIN.split(',') : []),
     credentials: true,
 }));
