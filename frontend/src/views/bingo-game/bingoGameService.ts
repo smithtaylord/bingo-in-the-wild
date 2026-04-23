@@ -4,6 +4,8 @@ export interface BingoCell {
   isFreeSpace?: boolean;
 }
 
+const BOARD_DEF_PREFIX = "bingo-board-def-";
+
 const BINGO_WINNER_POSSIBILITIES = [
   // Horizontal Winners
   [
@@ -139,4 +141,28 @@ export function retrieveBoardFromLocalStorage(): BingoCell[][] | null {
 
 export function removeBoardFromLocalStorage() {
   localStorage.removeItem("bingo-board");
+}
+
+export function cacheBoardDef(id: string, boardDef: {name: string; items: string[]; freeSpace?: string}) {
+  try {
+    localStorage.setItem(BOARD_DEF_PREFIX + id, JSON.stringify(boardDef));
+  } catch {
+    // localStorage may be full or unavailable
+  }
+}
+
+export function getCachedBoardDef(id: string): {name: string; items: string[]; freeSpace?: string} | null {
+  try {
+    const raw = localStorage.getItem(BOARD_DEF_PREFIX + id);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.name === 'string' && Array.isArray(parsed.items)) {
+      return parsed;
+    }
+    localStorage.removeItem(BOARD_DEF_PREFIX + id);
+    return null;
+  } catch {
+    localStorage.removeItem(BOARD_DEF_PREFIX + id);
+    return null;
+  }
 }

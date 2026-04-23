@@ -34,25 +34,7 @@
         </ion-menu-toggle>
       </ion-list>
 
-      <ion-list>
-        <ion-list-header color="white">
-          <ion-label color="dark-green">Theme</ion-label>
-        </ion-list-header>
-        <div class="theme-segment-container">
-          <ion-segment :value="currentTheme" @ionChange="onThemeChange">
-            <ion-segment-button value="wild">
-              <ion-label>Wild</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="light">
-              <ion-label>Light</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="dark">
-              <ion-label>Dark</ion-label>
-            </ion-segment-button>
-          </ion-segment>
-        </div>
-      </ion-list>
-    </ion-content>
+      </ion-content>
   </ion-menu>
 </template>
 
@@ -64,18 +46,14 @@ import {
   IonItem,
   IonLabel,
   IonList,
-  IonListHeader,
   IonMenu,
   IonMenuToggle,
-  IonSegment,
-  IonSegmentButton,
   IonTitle,
   IonToolbar
 } from "@ionic/vue";
 import {home, informationCircle, logOut} from "ionicons/icons";
 import {computed} from "vue";
 import {isLoggedIn, logout} from "@/services/auth";
-import {useTheme, ThemeName} from "@/services/theme";
 
 interface MenuItem {
   name: string;
@@ -98,14 +76,6 @@ const menuItems: MenuItem[] = [
 ];
 
 const loggedIn = computed(() => isLoggedIn());
-const {currentTheme, setTheme} = useTheme();
-
-const onThemeChange = (event: CustomEvent) => {
-  const value = event.detail.value as ThemeName;
-  if (value) {
-    setTheme(value);
-  }
-};
 </script>
 
 <style scoped>
@@ -127,10 +97,6 @@ ion-item {
 ion-item ion-icon {
     margin-right: 12px;
     font-size: 1.3rem;
-}
-
-.theme-segment-container {
-    padding: 0 8px;
 }
 
 ion-segment {

@@ -114,8 +114,10 @@ import { useRoute } from "vue-router";
 import {
   addBoardToLocalStorage,
   BingoCell,
+  cacheBoardDef,
   checkWinner,
   clearBoard,
+  getCachedBoardDef,
   removeBoardFromLocalStorage,
   retrieveBoardFromLocalStorage,
 } from "@/views/bingo-game/bingoGameService";
@@ -271,18 +273,16 @@ const goHome = () => {
 };
 
 const createBoard = async () => {
-  const gameBoard: BingoCell[][] | null = await api.createGameBoard(
-    props.id,
-  );
+  const result = await api.createGameBoard(props.id);
 
-  if (!gameBoard) {
+  if (!result) {
     await invalidThemeId();
     return;
   }
 
-  const loadedBoard = await api.loadBoard(props.id);
-  themeName.value = api.getThemeName(loadedBoard || null);
-  board.value = gameBoard;
+  themeName.value = result.boardDef.name;
+  cacheBoardDef(props.id, result.boardDef);
+  board.value = result.gameBoard;
 };
 
 const shuffleAndResetGame = async () => {
@@ -348,6 +348,11 @@ watch(
 onIonViewWillEnter(async () => {
   shareCode.value = route.query.code as string | null;
 
+  const cachedDef = getCachedBoardDef(props.id);
+  if (cachedDef) {
+    themeName.value = cachedDef.name;
+  }
+
   const savedGameBoard = retrieveBoardFromLocalStorage();
   if (savedGameBoard) {
     board.value = savedGameBoard;
@@ -370,6 +375,8 @@ const checkAndShowPlayWithFriendsAlert = () => {
 const checkOwnership = async () => {
   try {
     const boardData = await boardApi.getBingoBoardById(props.id);
+
+    cacheBoardDef(props.id, {name: boardData.name, items: boardData.items, freeSpace: boardData.freeSpace});
 
     if (boardData.shareCode) {
       shareCode.value = boardData.shareCode;
@@ -460,8 +467,8 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
 .bingo-cell-text {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
   text-overflow: ellipsis;
 
@@ -469,10 +476,10 @@ const handleCellToggled = ([rowIndex, colIndex]: number[]) => {
   word-break: break-word;
   text-align: center;
 
-  font-size: clamp(0.6rem, 1.5vw, 1rem); /* Slightly raised floor and ceiling */
-  line-height: 1.25; /* Enough breathing room */
-  max-height: calc(1.25em * 2); /* 2 lines max */
-  padding: 0.1em; /* Prevent text from touching edges */
+  font-size: clamp(0.6rem, 1.5vw, 1rem);
+  line-height: 1.25;
+  max-height: calc(1.25em * 3);
+  padding: 0.1em;
 }
 
 .bingo-cell-popover-wrapper {

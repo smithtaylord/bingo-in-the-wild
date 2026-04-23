@@ -15,10 +15,12 @@
         <span class="share-code">{{ localShareCode }}</span>
       </div>
 
-      <ion-button expand="block" color="coral" @click="copyCode">
-        <ion-icon :icon="copyOutline" slot="start"></ion-icon>
-        Copy Code
+      <ion-button expand="block" color="coral" @click="copyShareLink">
+        <ion-icon :icon="linkOutline" slot="start"></ion-icon>
+        Share Link
       </ion-button>
+
+      <p class="share-hint">This copies a link that takes players directly to the game.</p>
 
       <template v-if="isOwner">
         <p class="expiry-text">
@@ -52,7 +54,7 @@ import {
     IonToolbar,
     modalController,
 } from "@ionic/vue";
-import {closeOutline, copyOutline, refreshOutline} from "ionicons/icons";
+import {closeOutline, linkOutline, refreshOutline} from "ionicons/icons";
 import {onMounted, onUnmounted, ref} from "vue";
 import {BingoBoardAPI} from "@/views/start-game-modal/BingoBoardAPI";
 import {showError, showSuccess} from "@/services/toast";
@@ -109,12 +111,29 @@ onUnmounted(() => {
     }
 });
 
-const copyCode = async () => {
+const copyShareLink = async () => {
+    const shareUrl = `${window.location.origin}/join/${localShareCode.value}`;
     try {
-        await navigator.clipboard.writeText(localShareCode.value);
-        showSuccess('Code copied to clipboard!');
-    } catch (error) {
-        showError('Failed to copy code');
+        await navigator.clipboard.writeText(shareUrl);
+        showSuccess('Share link copied to clipboard!');
+    } catch {
+        let textArea: HTMLTextAreaElement | null = null;
+        try {
+            textArea = document.createElement('textarea');
+            textArea.value = shareUrl;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            showSuccess('Share link copied to clipboard!');
+        } catch {
+            showError('Failed to copy link');
+        } finally {
+            if (textArea && textArea.parentNode) {
+                textArea.parentNode.removeChild(textArea);
+            }
+        }
     }
 };
 
@@ -176,6 +195,14 @@ const disableSharing = async () => {
     color: var(--ion-color-dark-green-contrast);
     letter-spacing: 0.2em;
     white-space: nowrap;
+}
+
+.share-hint {
+    text-align: center;
+    color: var(--ion-color-dark-green);
+    margin: 0;
+    opacity: 0.6;
+    font-size: 0.8rem;
 }
 
 .expiry-text {
