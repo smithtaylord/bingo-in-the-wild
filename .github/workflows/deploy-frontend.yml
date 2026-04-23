@@ -39,6 +39,10 @@ jobs:
           VITE_AUTH0_CLIENT_ID: ${{ secrets.VITE_AUTH0_CLIENT_ID }}
           VITE_AUTH0_AUDIENCE: ${{ secrets.VITE_AUTH0_AUDIENCE }}
 
+      - name: Copy staticwebapp.config.json to dist
+        working-directory: ./frontend
+        run: cp staticwebapp.config.json dist/staticwebapp.config.json
+
       - name: Deploy to Static Web App
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
