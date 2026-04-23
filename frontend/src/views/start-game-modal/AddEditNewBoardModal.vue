@@ -2,11 +2,13 @@
   <ion-header>
     <ion-toolbar color="dusty-green">
       <ion-buttons slot="start">
-        <ion-button color="medium" @click="cancel">Cancel</ion-button>
+        <ion-button @click="cancel">
+            <ion-icon :icon="chevronBackOutline" />
+          </ion-button>
       </ion-buttons>
       <ion-buttons slot="end">
         <ion-button
-            color="light"
+            color="dark-green"
             :disabled="!isValid"
             @click="saveTheme"
         >
@@ -25,26 +27,21 @@
             label-placement="stacked"
             placeholder="Enter theme name"
             :disabled="isEditing"
+            :spellcheck="true"
+            autocapitalize="sentences"
+            autocomplete="off"
         ></ion-input>
       </ion-item>
 
       <ion-item>
-        <div class="input-mode-toggle">
-          <ion-button
-              size="small"
-              :color="!isBulkMode ? 'coral' : 'medium'"
-              @click="isBulkMode = false"
-          >
-            Single
-          </ion-button>
-          <ion-button
-              size="small"
-              :color="isBulkMode ? 'coral' : 'medium'"
-              @click="isBulkMode = true"
-          >
-            Bulk Add
-          </ion-button>
-        </div>
+        <ion-segment :value="isBulkMode ? 'bulk' : 'single'" @ionChange="onInputModeChange">
+          <ion-segment-button value="single">
+            <ion-label>Single</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="bulk">
+            <ion-label>Bulk</ion-label>
+          </ion-segment-button>
+        </ion-segment>
       </ion-item>
 
       <template v-if="!isBulkMode">
@@ -54,6 +51,9 @@
               label="Add Bingo Items (minimum 24)"
               label-placement="stacked"
               placeholder="Enter item"
+              :spellcheck="true"
+              autocapitalize="sentences"
+              autocomplete="off"
               @keyup.enter="addItem"
           ></ion-input>
           <ion-button slot="end" color="coral" @click="addItem">Enter</ion-button>
@@ -64,17 +64,19 @@
         <ion-item>
           <ion-textarea
               v-model="bulkInput"
-              label="Paste items (comma or newline separated)"
+              label="Add multiple items at once"
               label-placement="stacked"
-              placeholder="Enter items separated by commas or new lines, for example:&#10;Touchdown, Fumble, Interception, Sack"
-              :rows="4"
+              placeholder="Put each item on its own line:&#10;Touchdown&#10;Fumble&#10;Interception&#10;&#10;Or separate with commas:&#10;Touchdown, Fumble, Interception"
+              :rows="8"
+              :spellcheck="true"
+              autocomplete="off"
           ></ion-textarea>
         </ion-item>
-        <ion-item>
-          <ion-button color="coral" @click="bulkAddItems">
+        <div class="bulk-add-row">
+          <ion-button size="small" color="coral" @click="bulkAddItems">
             Add All Items
           </ion-button>
-        </ion-item>
+        </div>
       </template>
 
       <ion-item v-if="!isEditing">
@@ -87,7 +89,7 @@
             Use an existing board as template
             <ion-text color="medium">(Optional)</ion-text>
           </div>
-          <ion-select-option :value="null">-- Select a board --</ion-select-option>
+          <ion-select-option value="">-- Select a board --</ion-select-option>
           <ion-select-option v-for="board in availableBoards" :key="board._id" :value="board._id">
             {{ board.name }}
           </ion-select-option>
@@ -106,6 +108,11 @@
         </span>
       </div>
 
+      <ion-note v-if="itemList.length > 0" class="swipe-hint" color="medium">
+        <ion-icon :icon="arrowBackOutline" size="small"></ion-icon>
+        Swipe left on an item for more options
+      </ion-note>
+
       <ion-item-sliding v-if="freeSpace">
         <ion-item :detail="false" button color="white">
           <ion-label color="dark-green">
@@ -115,6 +122,10 @@
         </ion-item>
 
         <ion-item-options side="end">
+          <ion-item-option color="primary" @click="editFreeSpace">
+            <ion-icon slot="start" :icon="createOutline"></ion-icon>
+            Edit
+          </ion-item-option>
           <ion-item-option color="medium" @click="removeFreeSpace">
             <ion-icon slot="start" :icon="closeOutline"></ion-icon>
             Remove
@@ -132,6 +143,10 @@
             <ion-icon slot="start" :icon="star"></ion-icon>
             Free Space
           </ion-item-option>
+          <ion-item-option color="primary" @click="editItem(item)">
+            <ion-icon slot="start" :icon="createOutline"></ion-icon>
+            Edit
+          </ion-item-option>
           <ion-item-option color="danger" @click="deleteItem(item)">
             <ion-icon slot="start" :icon="trash"></ion-icon>
             Delete
@@ -146,6 +161,7 @@
 
 <script lang="ts" setup>
 import {
+    alertController,
     IonButton,
     IonButtons,
     IonContent,
@@ -158,6 +174,9 @@ import {
     IonItemSliding,
     IonLabel,
     IonList,
+    IonNote,
+    IonSegment,
+    IonSegmentButton,
     IonSelect,
     IonSelectOption,
     IonText,
@@ -166,7 +185,7 @@ import {
     IonToolbar,
     modalController,
 } from "@ionic/vue";
-import {closeOutline, star, trash} from "ionicons/icons";
+import {arrowBackOutline, chevronBackOutline, closeOutline, createOutline, star, trash} from "ionicons/icons";
 import {computed, onMounted, Ref, ref} from "vue";
 import {BingoBoard, BingoBoardAPI} from "@/views/start-game-modal/BingoBoardAPI";
 import {showError, showSuccess, showWarning} from "@/services/toast";
@@ -182,11 +201,16 @@ const props = defineProps<{
 const currentItem = ref<string>("");
 const itemList = ref<string[]>([]);
 const freeSpace = ref<string | null>(null);
-const sourceBoardId = ref<string | null>(null);
+const sourceBoardId = ref<string>("");
 const themeName = ref<string>("");
 const isLoading = ref<boolean>(false);
 const isBulkMode = ref<boolean>(false);
 const bulkInput = ref<string>("");
+const swipeHintDismissed = ref<boolean>(false);
+
+const onInputModeChange = (event: CustomEvent) => {
+    isBulkMode.value = event.detail.value === 'bulk';
+};
 
 const boards: Ref<BingoBoard[]> = ref([]);
 
@@ -273,19 +297,85 @@ const removeFreeSpace = () => {
     }
 };
 
+const editItem = async (item: string) => {
+    const alert = await alertController.create({
+        header: 'Edit Item',
+        inputs: [
+            {
+                name: 'newLabel',
+                value: item,
+                placeholder: 'Enter new text',
+            },
+        ],
+        buttons: [
+            { text: 'Cancel', role: 'cancel' },
+            {
+                text: 'Save',
+                handler: (data) => {
+                    const trimmed = (data.newLabel || '').trim();
+                    if (!trimmed) return false;
+                    const isDuplicate = itemList.value.some(
+                        existing => existing !== item && existing.toLowerCase() === trimmed.toLowerCase()
+                    );
+                    if (isDuplicate) {
+                        showError('This item already exists');
+                        return false;
+                    }
+                    const index = itemList.value.indexOf(item);
+                    if (index !== -1) {
+                        itemList.value[index] = trimmed;
+                    }
+                },
+            },
+        ],
+    });
+    await alert.present();
+};
+
+const editFreeSpace = async () => {
+    if (!freeSpace.value) return;
+    const alert = await alertController.create({
+        header: 'Edit Free Space',
+        inputs: [
+            {
+                name: 'newLabel',
+                value: freeSpace.value,
+                placeholder: 'Enter new text',
+            },
+        ],
+        buttons: [
+            { text: 'Cancel', role: 'cancel' },
+            {
+                text: 'Save',
+                handler: (data) => {
+                    const trimmed = (data.newLabel || '').trim();
+                    if (!trimmed) return false;
+                    freeSpace.value = trimmed;
+                },
+            },
+        ],
+    });
+    await alert.present();
+};
+
 const populateFromBoard = (board: BingoBoard) => {
     themeName.value = `${board.name} (Copy)`;
     itemList.value = [...board.items];
     freeSpace.value = board.freeSpace || null;
-    sourceBoardId.value = null;
+    sourceBoardId.value = "";
 };
 
-const onSourceBoardSelected = (event: CustomEvent) => {
+const onSourceBoardSelected = async (event: CustomEvent) => {
     const selectedId = event.detail.value;
     if (selectedId) {
-        const selectedBoard = boards.value.find(board => board._id === selectedId);
-        if (selectedBoard) {
-            populateFromBoard(selectedBoard);
+        try {
+            const selectedBoard = await api.getBingoBoardById(selectedId);
+            if (selectedBoard) {
+                populateFromBoard(selectedBoard);
+            }
+        } catch (error) {
+            console.error('Error loading template board:', error);
+            showError('Failed to load template board');
         }
     }
 };
@@ -367,9 +457,42 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.input-mode-toggle {
+.swipe-hint {
     display: flex;
-    gap: 8px;
-    width: 100%;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+ion-input,
+ion-textarea {
+    --background: #FFFFFF;
+    --color: #2B3A2D;
+    --placeholder-color: #888888;
+}
+
+ion-segment {
+    --background: #FFFFFF;
+}
+
+ion-segment-button {
+    --color: var(--ion-color-dark-green);
+    --color-checked: #FFFFFF;
+    --background-checked: var(--ion-color-dark-green);
+    --indicator-color: var(--ion-color-dark-green);
+    font-weight: 600;
+}
+
+.bulk-add-row {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 16px;
+}
+
+ion-toolbar ion-button {
+    --color: #2B3A2D;
+    --color-hover: #1a231b;
+    font-weight: 700;
 }
 </style>

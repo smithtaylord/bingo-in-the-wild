@@ -4,6 +4,11 @@ import {shuffle} from "@/views/common/functions/shuffle";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
+export interface CreateGameBoardResult {
+    gameBoard: BingoCell[][];
+    boardDef: BingoBoard;
+}
+
 export class BingoGameAPI {
     async loadBoard(id: string): Promise<BingoBoard | null> {
         try {
@@ -25,7 +30,7 @@ export class BingoGameAPI {
         return board?.name;
     }
 
-    async createGameBoard(id: string): Promise<BingoCell[][] | null> {
+    async createGameBoard(id: string): Promise<CreateGameBoardResult | null> {
         const board = await this.loadBoard(id);
         if (!board) {
             return null;
@@ -57,6 +62,6 @@ export class BingoGameAPI {
             gameBoard.push(boardRow);
         }
 
-        return gameBoard;
+        return {gameBoard, boardDef: board};
     }
 }

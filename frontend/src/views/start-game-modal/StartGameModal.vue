@@ -12,6 +12,10 @@
         </ion-header>
         <ion-content>
           <div class="my-games-content">
+            <ion-note v-if="myBoards.length > 0" class="swipe-hint-board" color="medium">
+              <ion-icon :icon="arrowBackOutline" size="small"></ion-icon>
+              Swipe left on a board to edit or delete
+            </ion-note>
             <ion-list lines="inset">
               <ion-item-sliding
                   v-for="board in myBoards"
@@ -166,6 +170,7 @@ import {
     IonItemSliding,
     IonLabel,
     IonList,
+    IonNote,
     IonTab,
     IonTabBar,
     IonTabButton,
@@ -174,7 +179,7 @@ import {
     IonToolbar,
     modalController,
 } from "@ionic/vue";
-import {addOutline, americanFootball, beer, compass, createOutline, personCircle, shareSocialOutline, trashOutline} from "ionicons/icons";
+import {addOutline, americanFootball, arrowBackOutline, beer, compass, createOutline, personCircle, shareSocialOutline, trashOutline} from "ionicons/icons";
 import {computed, onMounted, ref, watch} from "vue";
 import {
     BingoBoard,
@@ -201,6 +206,7 @@ const myBoards = ref<BingoBoard[]>([]);
 const sportsBoards = ref<BingoBoard[]>([]);
 const socialBoards = ref<BingoBoard[]>([]);
 const locationBoards = ref<BingoBoard[]>([]);
+const swipeHintDismissed = ref<boolean>(false);
 
 const handleMyGamesClick = async () => {
     if (!loggedIn.value) {
@@ -346,5 +352,26 @@ const onTabChange = async (event: CustomEvent) => {
 
 .guest-tab {
     opacity: 0.5;
+}
+
+.swipe-hint-board {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+ion-tab-bar[color="dusty-green"] ion-tab-button {
+    --color: rgba(0, 0, 0, 0.54);
+}
+
+ion-tab-bar[color="dusty-green"] ion-tab-button.tab-selected {
+    --color: var(--ion-color-dark-green);
+    color: var(--ion-color-dark-green) !important;
+}
+
+ion-tab-bar[color="dusty-green"] ion-tab-button.tab-selected::part(icon) {
+    color: var(--ion-color-dark-green) !important;
 }
 </style>
