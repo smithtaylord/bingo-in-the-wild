@@ -54,6 +54,10 @@ app.get('/protected', checkJwt, (req, res) => {
     res.send('🎉 You accessed a protected route!');
 });
 
+app.get('/api/health', (req, res) => {
+    res.json({status: 'ok', timestamp: Date.now()});
+});
+
 app.use('/api/user', userController);
 app.use('/api/board', boardRouter);
 

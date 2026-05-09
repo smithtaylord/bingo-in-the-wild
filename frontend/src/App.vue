@@ -1,5 +1,6 @@
 <template>
   <ion-app>
+    <GlobalLoadingOverlay />
     <div v-if="isLoading" class="auth-loading">
       <ion-spinner name="crescent" />
     </div>
@@ -16,6 +17,7 @@
 import {IonApp, IonRouterOutlet, IonSpinner} from "@ionic/vue";
 import {isLoading} from "@/services/auth";
 import Menu from "@/views/menu/Menu.vue";
+import GlobalLoadingOverlay from "@/components/GlobalLoadingOverlay.vue";
 </script>
 
 <style scoped>

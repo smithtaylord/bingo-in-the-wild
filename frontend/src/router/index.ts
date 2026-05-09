@@ -28,6 +28,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/bingo-game/BingoPage.vue"),
     props: true,
   },
+  {
+    path: "/donate",
+    name: "Donate",
+    component: () => import("@/views/donate/DonatePage.vue"),
+  },
 ];
 
 const router = createRouter({

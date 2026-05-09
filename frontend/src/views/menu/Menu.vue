@@ -51,7 +51,7 @@ import {
   IonTitle,
   IonToolbar
 } from "@ionic/vue";
-import {home, informationCircle, logOut} from "ionicons/icons";
+import {heart, home, informationCircle, logOut} from "ionicons/icons";
 import {computed} from "vue";
 import {isLoggedIn, logout} from "@/services/auth";
 
@@ -72,6 +72,11 @@ const menuItems: MenuItem[] = [
     name: "About",
     path: "/about",
     icon: informationCircle,
+  },
+  {
+    name: "Donate",
+    path: "/donate",
+    icon: heart,
   }
 ];
 
