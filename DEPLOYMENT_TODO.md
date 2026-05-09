@@ -16,10 +16,12 @@
 |---------|------|-------|
 | Azure Static Web App | **FREE** | 100GB bandwidth, custom domains included |
 | Azure Container Apps | **FREE** | 2M requests/month, 2GB memory, 1 vCPU |
-| Azure Container Registry | **~$5/mo** | Basic tier (covered by $200 free credit) |
+| GitHub Container Registry | **FREE** | Unlimited private packages (replaces ACR) |
 | MongoDB Atlas | **FREE** | Existing (512MB, shared cluster) |
 | Auth0 | **FREE** | Existing (7,000 MAU) |
-| **Total** | **~$5/mo** | **FREE for first 15 months with Azure credit!** |
+| **Total** | **$0/mo** | **After migrating from ACR to ghcr.io** |
+
+> **Note:** If you're still using Azure Container Registry (ACR), it costs ~$5/mo. See [MIGRATE_TO_GHCR.md](MIGRATE_TO_GHCR.md) to switch to GitHub Container Registry for free.
 
 ---
 
