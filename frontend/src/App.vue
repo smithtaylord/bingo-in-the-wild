@@ -15,9 +15,11 @@
 
 <script lang="ts" setup>
 import {IonApp, IonRouterOutlet, IonSpinner} from "@ionic/vue";
-import {isLoading} from "@/services/auth";
+import {isLoading, initAuth0} from "@/services/auth";
 import Menu from "@/views/menu/Menu.vue";
 import GlobalLoadingOverlay from "@/components/GlobalLoadingOverlay.vue";
+
+initAuth0();
 </script>
 
 <style scoped>

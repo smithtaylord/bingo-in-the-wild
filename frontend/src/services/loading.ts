@@ -83,6 +83,20 @@ export function endRequest() {
     }
 }
 
+export function dismissOverlay() {
+    if (overlayTimer) {
+        clearTimeout(overlayTimer);
+        overlayTimer = null;
+    }
+    if (minDisplayTimer) {
+        clearTimeout(minDisplayTimer);
+        minDisplayTimer = null;
+    }
+    isLoadingOverlay.value = false;
+    loadingMessage.value = '';
+    overlayShownAt = null;
+}
+
 export async function pingServerIfNeeded(): Promise<void> {
     const lastPing = localStorage.getItem(PING_CACHE_KEY);
     if (lastPing) {

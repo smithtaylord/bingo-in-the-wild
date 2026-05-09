@@ -8,6 +8,7 @@
           <ion-icon :icon="heartOutline" size="small" />
           Help speed this up
         </a>
+        <a class="dismiss-link" @click="dismissOverlay">Dismiss</a>
       </div>
     </div>
   </teleport>
@@ -16,7 +17,7 @@
 <script lang="ts" setup>
 import {IonIcon, IonSpinner, modalController, useIonRouter} from '@ionic/vue';
 import {heartOutline} from 'ionicons/icons';
-import {getIsLoadingOverlay, getLoadingMessage} from '@/services/loading';
+import {dismissOverlay, getIsLoadingOverlay, getLoadingMessage} from '@/services/loading';
 
 const isLoadingOverlay = getIsLoadingOverlay();
 const loadingMessage = getLoadingMessage();
@@ -92,5 +93,19 @@ const goToDonate = async () => {
 
 .donate-btn:active {
     transform: scale(0.97);
+}
+
+.dismiss-link {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    color: var(--ion-color-dark-green);
+    opacity: 0.6;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.dismiss-link:hover {
+    opacity: 1;
 }
 </style>
