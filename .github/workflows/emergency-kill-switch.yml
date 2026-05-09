@@ -1,0 +1,41 @@
+name: Emergency - Kill Switch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  kill-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Scale backend to zero replicas
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            echo "KILLING BACKEND - Scaling bingo-api to 0 replicas"
+            az containerapp update \
+              --name bingo-api \
+              --resource-group bingo-game-rg \
+              --min-replicas 0 \
+              --max-replicas 0
+            echo "Backend is now OFFLINE. All API traffic will receive 503 errors."
+
+      - name: Verify backend is down
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            REPLICAS=$(az containerapp show \
+              --name bingo-api \
+              --resource-group bingo-game-rg \
+              --query properties.template.scale.maxReplicas \
+              --output tsv)
+            echo "Max replicas is now: $REPLICAS"
+            if [ "$REPLICAS" = "0" ]; then
+              echo "SUCCESS: Backend is shut down."
+            else
+              echo "WARNING: Max replicas is $REPLICAS, expected 0. Check Azure Portal."
+            fi

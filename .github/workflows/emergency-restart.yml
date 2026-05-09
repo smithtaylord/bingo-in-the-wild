@@ -1,0 +1,54 @@
+name: Emergency - Restart Backend
+
+on:
+  workflow_dispatch:
+
+jobs:
+  restart-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Scale backend back up
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            echo "RESTARTING BACKEND - Scaling bingo-api to max 3 replicas"
+            az containerapp update \
+              --name bingo-api \
+              --resource-group bingo-game-rg \
+              --min-replicas 0 \
+              --max-replicas 3
+            echo "Backend is now ONLINE with auto-scaling (0-3 replicas)."
+
+      - name: Verify backend is up
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            REPLICAS=$(az containerapp show \
+              --name bingo-api \
+              --resource-group bingo-game-rg \
+              --query properties.template.scale.maxReplicas \
+              --output tsv)
+            echo "Max replicas is now: $REPLICAS"
+            if [ "$REPLICAS" != "0" ]; then
+              echo "SUCCESS: Backend is back online."
+            else
+              echo "WARNING: Max replicas is still 0. Restart may have failed."
+            fi
+
+      - name: Health check
+        run: |
+          echo "Waiting 30 seconds for container to start..."
+          sleep 30
+          API_URL=$(az containerapp show \
+            --name bingo-api \
+            --resource-group bingo-game-rg \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv)
+          echo "Testing API at https://$API_URL"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$API_URL" || echo "failed")
+          echo "Health check returned HTTP status: $STATUS"

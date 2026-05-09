@@ -1,7 +1,7 @@
 import {ref} from 'vue';
 import {Auth0Client, createAuth0Client, User} from '@auth0/auth0-spa-js';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+import {apiFetch} from '@/services/api';
+import {pingServerIfNeeded} from '@/services/loading';
 
 const isAuthenticated = ref(false);
 const isLoading = ref(true);
@@ -44,6 +44,15 @@ export async function initAuth0() {
 }
 
 export async function login() {
+    // We intentionally do NOT await pingServerIfNeeded here.
+    // The purpose of this ping is to warm up a cold server so that by the
+    // time the user returns from Auth0 (several seconds later), the server
+    // is ready. If we await it, the user would sit on the login screen waiting
+    // for the ping to complete before even reaching Auth0 — which defeats
+    // the purpose. Fire-and-forget is the correct pattern: start the ping
+    // and immediately redirect the user. Any errors are silently swallowed
+    // inside pingServerIfNeeded, so there is no risk to the login flow.
+    pingServerIfNeeded();
     await auth0Client.loginWithRedirect();
 }
 
@@ -76,7 +85,7 @@ async function syncUserWithBackend() {
     if (import.meta.env.DEV) {
         console.log('Syncing user with backend...');
     }
-    const response = await fetch(`${API_BASE_URL}/api/user/login`, {
+    const response = await apiFetch('/api/user/login', {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${token}`,
@@ -94,5 +103,3 @@ async function syncUserWithBackend() {
         console.error('Failed to sync user with backend');
     }
 }
-
-
