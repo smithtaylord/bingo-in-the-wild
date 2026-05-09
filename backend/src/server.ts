@@ -1,3 +1,14 @@
+import applicationinsights from 'applicationinsights';
+if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
+    applicationinsights
+        .setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
+        .setAutoCollectRequests(true)
+        .setAutoCollectPerformance(true, true)
+        .setAutoCollectExceptions(true)
+        .setSendLiveMetrics(false)
+        .start();
+}
+
 import express from 'express';
 import {connectToDB} from './db';
 import dotenv from 'dotenv';
