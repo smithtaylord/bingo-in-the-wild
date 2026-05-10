@@ -16,24 +16,30 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Reactivate latest revision
+      - name: Reactivate all revisions
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            echo "RESTARTING BACKEND - Reactivating latest revision for ${{ env.CONTAINER_APP_NAME }}"
+            echo "RESTARTING BACKEND - Reactivating revisions for ${{ env.CONTAINER_APP_NAME }}"
 
-            LATEST_REVISION=$(az containerapp revision list \
+            REVISIONS=$(az containerapp revision list \
               --name ${{ env.CONTAINER_APP_NAME }} \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --query "sort_by([], &properties.createdTime)[-1].name" \
+              --query "[].name" \
               --output tsv)
 
-            echo "Activating revision: $LATEST_REVISION"
+            if [ -z "$REVISIONS" ]; then
+              echo "ERROR: No revisions found. Cannot restart."
+              exit 1
+            fi
 
-            az containerapp revision activate \
-              --name ${{ env.CONTAINER_APP_NAME }} \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --revision "$LATEST_REVISION"
+            for REVISION in $REVISIONS; do
+              echo "Activating revision: $REVISION"
+              az containerapp revision activate \
+                --name ${{ env.CONTAINER_APP_NAME }} \
+                --resource-group ${{ env.RESOURCE_GROUP }} \
+                --revision "$REVISION" || true
+            done
 
             echo "Backend is now ONLINE."
 
@@ -54,14 +60,20 @@ jobs:
             fi
 
       - name: Health check
-        run: |
-          echo "Waiting 30 seconds for container to start..."
-          sleep 30
-          API_URL=$(az containerapp show \
-            --name ${{ env.CONTAINER_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --query properties.configuration.ingress.fqdn \
-            --output tsv)
-          echo "Testing API at https://$API_URL"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$API_URL" || echo "failed")
-          echo "Health check returned HTTP status: $STATUS"
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            echo "Waiting 45 seconds for container to start..."
+            sleep 45
+            API_URL=$(az containerapp show \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --query properties.configuration.ingress.fqdn \
+              --output tsv)
+            echo "Testing API at https://$API_URL"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$API_URL" || echo "failed")
+            if [ "$STATUS" = "200" ]; then
+              echo "SUCCESS: Health check returned HTTP 200"
+            else
+              echo "WARNING: Health check returned HTTP $STATUS (cold start may need more time)"
+            fi
