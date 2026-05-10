@@ -1,4 +1,4 @@
-import applicationinsights from 'applicationinsights';
+import * as applicationinsights from 'applicationinsights';
 if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
     applicationinsights
         .setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
