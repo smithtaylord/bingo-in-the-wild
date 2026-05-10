@@ -7,6 +7,7 @@ if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
         .setAutoCollectExceptions(true)
         .setSendLiveMetrics(false)
         .start();
+    applicationinsights.defaultClient.config.samplingPercentage = 100;
 }
 
 import express from 'express';
@@ -83,14 +84,32 @@ connectToDB().catch((err) => {
 
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
-    server.close(() => {
-        process.exit(0);
-    });
+    const shutdown = async () => {
+        try {
+            applicationinsights.flushAzureMonitor();
+            await applicationinsights.shutdownAzureMonitor();
+        } catch {
+            // Flush may fail if SDK not initialized
+        }
+        server.close(() => {
+            process.exit(0);
+        });
+    };
+    shutdown();
 });
 
 process.on('SIGINT', () => {
     console.log('SIGINT received, shutting down gracefully');
-    server.close(() => {
-        process.exit(0);
-    });
+    const shutdown = async () => {
+        try {
+            applicationinsights.flushAzureMonitor();
+            await applicationinsights.shutdownAzureMonitor();
+        } catch {
+            // Flush may fail if SDK not initialized
+        }
+        server.close(() => {
+            process.exit(0);
+        });
+    };
+    shutdown();
 });
