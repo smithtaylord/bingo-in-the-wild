@@ -1,7 +1,7 @@
 import {ref} from 'vue';
 
-const LOADING_THRESHOLD_MS = 500;
-const MIN_DISPLAY_MS = 3000;
+const LOADING_THRESHOLD_MS = 1500;
+const MIN_DISPLAY_MS = 2000;
 const PING_CACHE_KEY = 'lastServerPing';
 const PING_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -39,13 +39,14 @@ export function startRequest(message?: string) {
         minDisplayTimer = null;
     }
 
-    if (!overlayTimer) {
+    if (!overlayTimer && !isLoadingOverlay.value) {
         overlayTimer = setTimeout(() => {
             if (activeRequests > 0) {
                 loadingMessage.value = message || funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
                 isLoadingOverlay.value = true;
                 overlayShownAt = Date.now();
             }
+            overlayTimer = null;
         }, LOADING_THRESHOLD_MS);
     }
 }
@@ -92,6 +93,7 @@ export function dismissOverlay() {
         clearTimeout(minDisplayTimer);
         minDisplayTimer = null;
     }
+    activeRequests = 0;
     isLoadingOverlay.value = false;
     loadingMessage.value = '';
     overlayShownAt = null;
