@@ -3,6 +3,10 @@ name: Emergency - Restart Backend
 on:
   workflow_dispatch:
 
+env:
+  CONTAINER_APP_NAME: bingo-api
+  RESOURCE_GROUP: bingo-game-rg
+
 jobs:
   restart-backend:
     runs-on: ubuntu-latest
@@ -12,32 +16,41 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Scale backend back up
+      - name: Reactivate latest revision
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            echo "RESTARTING BACKEND - Scaling bingo-api to max 3 replicas"
-            az containerapp update \
-              --name bingo-api \
-              --resource-group bingo-game-rg \
-              --min-replicas 0 \
-              --max-replicas 3
-            echo "Backend is now ONLINE with auto-scaling (0-3 replicas)."
+            echo "RESTARTING BACKEND - Reactivating latest revision for ${{ env.CONTAINER_APP_NAME }}"
+
+            LATEST_REVISION=$(az containerapp revision list \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --query "sort_by([], &properties.createdTime)[-1].name" \
+              --output tsv)
+
+            echo "Activating revision: $LATEST_REVISION"
+
+            az containerapp revision activate \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --revision "$LATEST_REVISION"
+
+            echo "Backend is now ONLINE."
 
       - name: Verify backend is up
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            REPLICAS=$(az containerapp show \
-              --name bingo-api \
-              --resource-group bingo-game-rg \
-              --query properties.template.scale.maxReplicas \
+            ACTIVE_REVISIONS=$(az containerapp revision list \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --query "[?properties.active==\`true\`].name" \
               --output tsv)
-            echo "Max replicas is now: $REPLICAS"
-            if [ "$REPLICAS" != "0" ]; then
-              echo "SUCCESS: Backend is back online."
+
+            if [ -n "$ACTIVE_REVISIONS" ]; then
+              echo "SUCCESS: Backend is back online. Active revision: $ACTIVE_REVISIONS"
             else
-              echo "WARNING: Max replicas is still 0. Restart may have failed."
+              echo "WARNING: No active revisions found. Restart may have failed."
             fi
 
       - name: Health check
@@ -45,8 +58,8 @@ jobs:
           echo "Waiting 30 seconds for container to start..."
           sleep 30
           API_URL=$(az containerapp show \
-            --name bingo-api \
-            --resource-group bingo-game-rg \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
             --query properties.configuration.ingress.fqdn \
             --output tsv)
           echo "Testing API at https://$API_URL"

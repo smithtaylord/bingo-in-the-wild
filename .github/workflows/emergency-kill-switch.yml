@@ -3,6 +3,10 @@ name: Emergency - Kill Switch
 on:
   workflow_dispatch:
 
+env:
+  CONTAINER_APP_NAME: bingo-api
+  RESOURCE_GROUP: bingo-game-rg
+
 jobs:
   kill-backend:
     runs-on: ubuntu-latest
@@ -12,30 +16,49 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Scale backend to zero replicas
+      - name: Save current max-replicas and deactivate all revisions
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            echo "KILLING BACKEND - Scaling bingo-api to 0 replicas"
-            az containerapp update \
-              --name bingo-api \
-              --resource-group bingo-game-rg \
-              --min-replicas 0 \
-              --max-replicas 0
+            echo "KILLING BACKEND - Deactivating all revisions for ${{ env.CONTAINER_APP_NAME }}"
+            
+            SAVED_MAX_REPLICAS=$(az containerapp show \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.CONTAINER_APP_NAME }} \
+              --query properties.template.scale.maxReplicas \
+              --output tsv)
+            echo "Current max-replicas: $SAVED_MAX_REPLICAS"
+            echo "SAVED_MAX_REPLICAS=$SAVED_MAX_REPLICAS" >> $GITHUB_ENV
+
+            REVISIONS=$(az containerapp revision list \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --query "[].name" \
+              --output tsv)
+
+            for REVISION in $REVISIONS; do
+              echo "Deactivating revision: $REVISION"
+              az containerapp revision deactivate \
+                --name ${{ env.CONTAINER_APP_NAME }} \
+                --resource-group ${{ env.RESOURCE_GROUP }} \
+                --revision "$REVISION" || true
+            done
+
             echo "Backend is now OFFLINE. All API traffic will receive 503 errors."
 
       - name: Verify backend is down
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            REPLICAS=$(az containerapp show \
-              --name bingo-api \
-              --resource-group bingo-game-rg \
-              --query properties.template.scale.maxReplicas \
+            ACTIVE_REVISIONS=$(az containerapp revision list \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --query "[?properties.active==\`true\`].name" \
               --output tsv)
-            echo "Max replicas is now: $REPLICAS"
-            if [ "$REPLICAS" = "0" ]; then
-              echo "SUCCESS: Backend is shut down."
+
+            if [ -z "$ACTIVE_REVISIONS" ]; then
+              echo "SUCCESS: Backend is shut down. No active revisions."
             else
-              echo "WARNING: Max replicas is $REPLICAS, expected 0. Check Azure Portal."
+              echo "WARNING: Active revisions still exist: $ACTIVE_REVISIONS"
+              echo "The kill switch may not have fully deactivated all revisions."
             fi
