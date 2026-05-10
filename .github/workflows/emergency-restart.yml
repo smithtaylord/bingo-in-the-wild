@@ -16,30 +16,16 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Reactivate all revisions
+      - name: Reactivate backend
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            echo "RESTARTING BACKEND - Reactivating revisions for ${{ env.CONTAINER_APP_NAME }}"
+            echo "RESTARTING BACKEND - Creating new active revision for ${{ env.CONTAINER_APP_NAME }}"
 
-            REVISIONS=$(az containerapp revision list \
+            az containerapp update \
               --name ${{ env.CONTAINER_APP_NAME }} \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --query "[].name" \
-              --output tsv)
-
-            if [ -z "$REVISIONS" ]; then
-              echo "ERROR: No revisions found. Cannot restart."
-              exit 1
-            fi
-
-            for REVISION in $REVISIONS; do
-              echo "Activating revision: $REVISION"
-              az containerapp revision activate \
-                --name ${{ env.CONTAINER_APP_NAME }} \
-                --resource-group ${{ env.RESOURCE_GROUP }} \
-                --revision "$REVISION" || true
-            done
+              --image ghcr.io/smithtaylord/bingo-backend:latest
 
             echo "Backend is now ONLINE."
 
